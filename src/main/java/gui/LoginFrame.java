@@ -1,7 +1,5 @@
 package gui;
 
-<<<<<<< HEAD
-=======
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -11,6 +9,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
@@ -25,7 +24,7 @@ import javax.swing.SwingUtilities;
  */
 public class LoginFrame extends JFrame{
     private JPanel loginPanel;
-    private JTextField usernameField;
+    private JTextField mailField;
     private JPasswordField passwordField;
 
     public LoginFrame() {
@@ -62,8 +61,8 @@ public class LoginFrame extends JFrame{
         loginPanel.add(new JLabel("Usuario:"), gbc);
 
         gbc.gridx = 1;
-        usernameField = new JTextField(20);
-        loginPanel.add(usernameField, gbc);
+        mailField = new JTextField(20);
+        loginPanel.add(mailField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy++;
@@ -80,26 +79,12 @@ public class LoginFrame extends JFrame{
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String username = usernameField.getText();
+                String mail = mailField.getText();
                 char[] password = passwordField.getPassword();
 
-                System.out.println("Contraseña ingresada: " + new String(password));
-                // Realizar la autenticación con el servicio de biblioteca
-                /*boolean isAuthenticated = bibliotecaService.getUsuarisDAO().authenticateUser(username, new String(password));
-
-                if (isAuthenticated) {
-
-                    // Mostrar el menú principal después de iniciar sesión
-                    MostrarMenuSegunPermisos();
-
-                    // Hacer invisible el login
-                    loginPanel.setVisible(false);
-                } else {
-                    JOptionPane.showMessageDialog(MenuPrincipal.this, "Inicio de sesión fallido", "Error", JOptionPane.ERROR_MESSAGE);
-                }*/
-
+                
                 // Limpia los campos después de intentar iniciar sesión
-                usernameField.setText("");
+                mailField.setText("");
                 passwordField.setText("");
             }
         });
@@ -119,4 +104,3 @@ public class LoginFrame extends JFrame{
     }
     
 }
->>>>>>> c3c79e8789507d6fbaf24644c50c6e5721dc7ebc
