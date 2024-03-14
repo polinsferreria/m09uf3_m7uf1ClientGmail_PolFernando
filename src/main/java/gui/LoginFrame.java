@@ -90,7 +90,7 @@ public class LoginFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String mail = mailField.getText();
                 char[] password = passwordField.getPassword();
-                
+
                 Properties smtpProps = new Properties();
                 smtpProps.setProperty("mail.smtp.host", "smtp.gmail.com");
                 smtpProps.setProperty("mail.smtp.auth", "true");
@@ -100,29 +100,29 @@ public class LoginFrame extends JFrame {
                 Session session = Session.getDefaultInstance(smtpProps);
 
                 Transport transport = null;
-                try {
-                    transport = session.getTransport("smtp");
-                    transport.connect(mail, new String(password));
-                    
-                    // Connection successful, proceed to next steps
+
+                switch (Conexion.loginTransport()) {
+                    case 1:
                     JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                } catch (AuthenticationFailedException ex) {
+
+                        break;
+                    case 2:
                     JOptionPane.showMessageDialog(LoginFrame.this, "Incorrect email or password", "Authentication Error", JOptionPane.ERROR_MESSAGE);
-                } catch (NoSuchProviderException ex) {
+
+                        break;
+                    case 3:
                     JOptionPane.showMessageDialog(LoginFrame.this, "Mail provider not found", "Error", JOptionPane.ERROR_MESSAGE);
-                    Logger.getLogger(LoginFrame.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (MessagingException ex) {
+
+                        break;
+                    case 4:
                     JOptionPane.showMessageDialog(LoginFrame.this, "An error occurred while connecting to the mail server", "Connection Error", JOptionPane.ERROR_MESSAGE);
-                    Logger.getLogger(LoginFrame.class.getName()).log(Level.SEVERE, null, ex);
-                } finally {
-                    if (transport != null) {
-                        try {
-                            transport.close();
-                        } catch (MessagingException ex) {
-                            Logger.getLogger(LoginFrame.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
+
+                        break;
+                    default:
+
+                        break;
                 }
+                
 
                 // Limpia los campos después de intentar iniciar sesión
                 mailField.setText("");
