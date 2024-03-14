@@ -1,31 +1,58 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package gui;
 
-import java.awt.HeadlessException;
-import javax.mail.Transport;
-import javax.swing.JFrame;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 
-/**
- *
- * @author usuario
- */
-public class MainFrame extends JFrame{
-    
-    private Transport transport;
+public class MainFrame extends JFrame {
 
-    public MainFrame(Transport transport){      
-        setTitle("Mail");
-        setSize(450, 300);
+    public MainFrame() {
+        setTitle("Mail Application");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
-        this.transport = transport;
-        
+        setSize(400, 300);
+        setLocationRelativeTo(null);
+
+        // Crear el menú
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menu = new JMenu("Opcions");
+
+        // Crear las opciones del menú con iconos
+        ImageIcon actualizarIcon = new ImageIcon("actualizar.png");
+        Image actualizarImage = actualizarIcon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+        ImageIcon actualizarScaledIcon = new ImageIcon(actualizarImage);
+
+        JMenuItem actualizarItem = new JMenuItem("Actualitzar", actualizarScaledIcon);
+        actualizarItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Lógica para actualizar correos
+
+            }
+        });
+
+        ImageIcon escribirIcon = new ImageIcon("escribir.png");
+        Image  escribirImage = escribirIcon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+        ImageIcon escribirI = new ImageIcon(actualizarImage);
+        JMenuItem escribirItem = new JMenuItem("Escriure", escribirI);
+        escribirItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
+
+        // Agregar las opciones al menú
+        menu.add(actualizarItem);
+        menu.add(escribirItem);
+        menuBar.add(menu);
+        setJMenuBar(menuBar);
+
+       
     }
-    
-    
-    
-    
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                new MainFrame().setVisible(true);
+            }
+        });
+    }
 }
