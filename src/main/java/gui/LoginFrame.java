@@ -103,6 +103,7 @@ public class LoginFrame extends JFrame {
                 try {
                     transport = session.getTransport("smtp");
                     transport.connect(mail, new String(password));
+                    
                     // Connection successful, proceed to next steps
                     JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 } catch (AuthenticationFailedException ex) {
