@@ -3,9 +3,15 @@ package gui;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.List;
 import java.awt.HeadlessException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.mail.Transport;
 import javax.swing.JFrame;
+import javax.swing.table.DefaultTableModel;
 import logicaMail.Conexion;
 
 public class MainFrame extends JFrame {
@@ -27,8 +33,14 @@ public class MainFrame extends JFrame {
         JMenuItem actualizarItem = new JMenuItem("Actualitzar", actualizarScaledIcon);
         actualizarItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Lógica para actualizar correos
-
+                try {
+                    // Lógica para actualizar correos
+                    crearTablaMensajes(c.obtenerMensajes());
+                } catch (MessagingException ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+                
             }
         });
 
@@ -48,6 +60,19 @@ public class MainFrame extends JFrame {
         menuBar.add(menu);
         setJMenuBar(menuBar);
 
+    }
+    
+    private void crearTablaMensajes(List<Message> mensajes) throws MessagingException{
+        
+        JTable tabla = new JTable();
+        DefaultTableModel model = new DefaultTableModel();
+        
+        for (Message mensaje : mensajes) {
+            model.addRow(mensaje.getFrom());
+        }
+        
+        tabla.setModel(model);
+        this.add(tabla,BorderLayout.CENTER);
     }
 
     public static void main(String[] args) {

@@ -96,7 +96,9 @@ public class LoginFrame extends JFrame {
                 switch (c.loginTransport()) {
                     case 1:
                         MainFrame m = new MainFrame(c);
+                        m.setVisible(true);
                         JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        dispose();
 
                         break;
                     case 2:
