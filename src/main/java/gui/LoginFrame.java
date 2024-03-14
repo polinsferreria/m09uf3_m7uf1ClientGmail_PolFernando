@@ -6,6 +6,14 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.mail.AuthenticationFailedException;
+import javax.mail.MessagingException;
+import javax.mail.NoSuchProviderException;
+import javax.mail.Session;
+import javax.mail.Transport;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -22,7 +30,8 @@ import javax.swing.SwingUtilities;
  *
  * @author usuario
  */
-public class LoginFrame extends JFrame{
+public class LoginFrame extends JFrame {
+
     private JPanel loginPanel;
     private JTextField mailField;
     private JPasswordField passwordField;
@@ -81,26 +90,59 @@ public class LoginFrame extends JFrame{
             public void actionPerformed(ActionEvent e) {
                 String mail = mailField.getText();
                 char[] password = passwordField.getPassword();
-
                 
+                Properties smtpProps = new Properties();
+                smtpProps.setProperty("mail.smtp.host", "smtp.gmail.com");
+                smtpProps.setProperty("mail.smtp.auth", "true");
+                smtpProps.setProperty("mail.smtp.starttls.enable", "true");
+                smtpProps.setProperty("mail.smtp.port", "587");
+
+                Session session = Session.getDefaultInstance(smtpProps);
+
+                Transport transport = null;
+                try {
+                    transport = session.getTransport("smtp");
+                    transport.connect(mail, new String(password));
+                    // Connection successful, proceed to next steps
+                    JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } catch (AuthenticationFailedException ex) {
+                    JOptionPane.showMessageDialog(LoginFrame.this, "Incorrect email or password", "Authentication Error", JOptionPane.ERROR_MESSAGE);
+                } catch (NoSuchProviderException ex) {
+                    JOptionPane.showMessageDialog(LoginFrame.this, "Mail provider not found", "Error", JOptionPane.ERROR_MESSAGE);
+                    Logger.getLogger(LoginFrame.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (MessagingException ex) {
+                    JOptionPane.showMessageDialog(LoginFrame.this, "An error occurred while connecting to the mail server", "Connection Error", JOptionPane.ERROR_MESSAGE);
+                    Logger.getLogger(LoginFrame.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+                    if (transport != null) {
+                        try {
+                            transport.close();
+                        } catch (MessagingException ex) {
+                            Logger.getLogger(LoginFrame.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+
                 // Limpia los campos después de intentar iniciar sesión
                 mailField.setText("");
                 passwordField.setText("");
             }
+
         });
         loginPanel.add(loginButton, gbc);
 
         add(loginPanel);
     }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 // Inicializa las capas y la interfaz
-                
+
                 LoginFrame loginFrame = new LoginFrame();
             }
         });
     }
-    
+
 }
