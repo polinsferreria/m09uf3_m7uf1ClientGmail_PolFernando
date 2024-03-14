@@ -4,10 +4,28 @@
  */
 package gui;
 
+import java.awt.HeadlessException;
+import javax.mail.Transport;
+import javax.swing.JFrame;
+
 /**
  *
  * @author usuario
  */
-public class MainFrame {
+public class MainFrame extends JFrame{
+    
+    private Transport transport;
+
+    public MainFrame(Transport transport){      
+        setTitle("Mail");
+        setSize(450, 300);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
+        this.transport = transport;
+        
+    }
+    
+    
+    
     
 }
