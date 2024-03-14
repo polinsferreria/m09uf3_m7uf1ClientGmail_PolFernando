@@ -3,12 +3,15 @@ package gui;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.HeadlessException;
+import javax.mail.Transport;
+import javax.swing.JFrame;
+import logicaMail.Conexion;
 
 public class MainFrame extends JFrame {
 
-    public MainFrame() {
+    public MainFrame(Conexion c) {
         setTitle("Mail Application");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(400, 300);
         setLocationRelativeTo(null);
 
@@ -30,7 +33,7 @@ public class MainFrame extends JFrame {
         });
 
         ImageIcon escribirIcon = new ImageIcon("escribir.png");
-        Image  escribirImage = escribirIcon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+        Image escribirImage = escribirIcon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
         ImageIcon escribirI = new ImageIcon(actualizarImage);
         JMenuItem escribirItem = new JMenuItem("Escriure", escribirI);
         escribirItem.addActionListener(new ActionListener() {
@@ -45,7 +48,6 @@ public class MainFrame extends JFrame {
         menuBar.add(menu);
         setJMenuBar(menuBar);
 
-       
     }
 
     public static void main(String[] args) {

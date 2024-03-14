@@ -25,6 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import logicaMail.Conexion;
 
 /**
  *
@@ -90,9 +91,27 @@ public class LoginFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String mail = mailField.getText();
                 char[] password = passwordField.getPassword();
-                
-               
 
+                Conexion c = new Conexion();
+                switch (c.loginTransport(mail, new String(password))) {
+                    case 1:
+                        MainFrame m = new MainFrame();
+                        JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                        break;
+                    case 2:
+                        JOptionPane.showMessageDialog(LoginFrame.this, "Incorrect email or password", "Authentication Error", JOptionPane.ERROR_MESSAGE);
+
+                        break;
+                    case 3:
+                        JOptionPane.showMessageDialog(LoginFrame.this, "Mail provider not found", "Error", JOptionPane.ERROR_MESSAGE);
+
+                        break;
+                    case 4:
+                        JOptionPane.showMessageDialog(LoginFrame.this, "An error occurred while connecting to the mail server", "Connection Error", JOptionPane.ERROR_MESSAGE);
+
+                        break;
+                }
                 // Limpia los campos después de intentar iniciar sesión
                 mailField.setText("");
                 passwordField.setText("");
