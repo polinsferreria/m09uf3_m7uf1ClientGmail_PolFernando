@@ -5,13 +5,19 @@
 package logicaMail;
 
 import gui.LoginFrame;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.mail.AuthenticationFailedException;
+import javax.mail.Folder;
+import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.NoSuchProviderException;
 import javax.mail.Session;
+import javax.mail.Store;
 import javax.mail.Transport;
 import javax.swing.JOptionPane;
 
@@ -22,11 +28,18 @@ import javax.swing.JOptionPane;
 public class Conexion {
 
     private Transport transport;
+    
+    private String email;
+    private String password;
 
-    public Conexion() {
+    public Conexion(String email, String password) {
+        this.email = email;
+        this.password = password;
     }
+    
+    
 
-    public int loginTransport(String email, String password) {
+    public int loginTransport() {
 
         Properties smtpProps = new Properties();
         smtpProps.setProperty("mail.smtp.host", "smtp.gmail.com");
@@ -51,5 +64,36 @@ public class Conexion {
         }
 
     }
+    
+     public List<Message> obtenerMensajes() {
+        List<Message> mensajes = new ArrayList<>();
 
+        Properties props = new Properties();
+        props.setProperty("mail.store.protocol", "imaps");
+        props.setProperty("mail.imaps.host", "imap.gmail.com");
+        props.setProperty("mail.imaps.port", "993");
+        props.setProperty("mail.imaps.ssl.trust", "*");
+
+        Session session = Session.getDefaultInstance(props);
+
+        try {
+            Store store = session.getStore("imaps");
+            store.connect(email, password);
+
+            Folder inbox = store.getFolder("INBOX");
+            inbox.open(Folder.READ_ONLY);
+
+            Message[] messages = inbox.getMessages();
+            mensajes.addAll(Arrays.asList(messages));
+
+            inbox.close(false);
+            store.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return mensajes;
+    }
+    
+    
 }

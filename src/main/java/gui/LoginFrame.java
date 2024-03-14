@@ -92,10 +92,10 @@ public class LoginFrame extends JFrame {
                 String mail = mailField.getText();
                 char[] password = passwordField.getPassword();
 
-                Conexion c = new Conexion();
-                switch (c.loginTransport(mail, new String(password))) {
+                Conexion c = new Conexion(mail, new String(password));
+                switch (c.loginTransport()) {
                     case 1:
-                        MainFrame m = new MainFrame();
+                        MainFrame m = new MainFrame(c);
                         JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
                         break;
