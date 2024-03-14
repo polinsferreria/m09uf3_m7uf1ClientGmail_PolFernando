@@ -22,20 +22,17 @@ import javax.swing.JOptionPane;
 public class Conexion {
 
     private Transport transport;
-    private Properties smtpProps;
-    
+
     public Conexion() {
-        //Propiedades
-        smtpProps = new Properties();
-        smtpProps.setProperty("mail.smtp.host", "smtp.gmail.com");
-        smtpProps.setProperty("mail.smtp.auth", "true");
-        smtpProps.setProperty("mail.smtp.starttls.enable", "true");
-        smtpProps.setProperty("mail.smtp.port", "587");
-        
     }
 
     public int loginTransport(String email, String password) {
 
+        Properties smtpProps = new Properties();
+        smtpProps.setProperty("mail.smtp.host", "smtp.gmail.com");
+        smtpProps.setProperty("mail.smtp.auth", "true");
+        smtpProps.setProperty("mail.smtp.starttls.enable", "true");
+        smtpProps.setProperty("mail.smtp.port", "587");
 
         Session session = Session.getDefaultInstance(smtpProps);
 
