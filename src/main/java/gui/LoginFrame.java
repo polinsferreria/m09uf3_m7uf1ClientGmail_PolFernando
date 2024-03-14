@@ -25,6 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import logicaMail.Conexion;
 
 /**
  *
@@ -90,19 +91,12 @@ public class LoginFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String mail = mailField.getText();
                 char[] password = passwordField.getPassword();
-
-                Properties smtpProps = new Properties();
-                smtpProps.setProperty("mail.smtp.host", "smtp.gmail.com");
-                smtpProps.setProperty("mail.smtp.auth", "true");
-                smtpProps.setProperty("mail.smtp.starttls.enable", "true");
-                smtpProps.setProperty("mail.smtp.port", "587");
-
-                Session session = Session.getDefaultInstance(smtpProps);
-
-                Transport transport = null;
-
-                switch (Conexion.loginTransport()) {
+                
+               
+                Conexion c = new Conexion();
+                switch (c.loginTransport(mail,new String(password))) {
                     case 1:
+                        MainFrame m =new MainFrame(c);
                     JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
                         break;
@@ -116,9 +110,6 @@ public class LoginFrame extends JFrame {
                         break;
                     case 4:
                     JOptionPane.showMessageDialog(LoginFrame.this, "An error occurred while connecting to the mail server", "Connection Error", JOptionPane.ERROR_MESSAGE);
-
-                        break;
-                    default:
 
                         break;
                 }

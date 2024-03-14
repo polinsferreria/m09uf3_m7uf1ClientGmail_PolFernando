@@ -7,6 +7,7 @@ package gui;
 import java.awt.HeadlessException;
 import javax.mail.Transport;
 import javax.swing.JFrame;
+import logicaMail.Conexion;
 
 /**
  *
@@ -16,7 +17,7 @@ public class MainFrame extends JFrame{
     
     private Transport transport;
 
-    public MainFrame(Transport transport){      
+    public MainFrame(Conexion c){      
         setTitle("Mail");
         setSize(450, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
