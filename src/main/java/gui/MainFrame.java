@@ -7,12 +7,14 @@ import java.util.List;
 import java.awt.HeadlessException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Transport;
 import javax.swing.JFrame;
 import javax.swing.table.DefaultTableModel;
 import logicaMail.Conexion;
+import logicaMail.ConexionEmails;
 
 public class MainFrame extends JFrame {
 
@@ -23,7 +25,7 @@ public class MainFrame extends JFrame {
         setSize(400, 300);
         setLocationRelativeTo(null);
 
-        Conexion c = new Conexion(user, password);
+        ConexionEmails c = new ConexionEmails(user, password);
         
         // Crear el menú
         JMenuBar menuBar = new JMenuBar();
@@ -37,9 +39,8 @@ public class MainFrame extends JFrame {
         JMenuItem actualizarItem = new JMenuItem("Actualitzar", actualizarScaledIcon);
         actualizarItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Lógica para actualizar correos
-                c.downloadEmails();
-                
+               
+               c.downloadEmails();
                 
             }
         });
@@ -62,23 +63,27 @@ public class MainFrame extends JFrame {
 
     }
     
-    private void crearTablaMensajes(List<Message> mensajes) throws MessagingException{
-        
-        JTable tabla = new JTable();
-        DefaultTableModel model = new DefaultTableModel();
-        
-        for (Message mensaje : mensajes) {
-            model.addRow(mensaje.getFrom());
+    private void crearTablaMensajes(List<Message> mensajes) throws MessagingException {
+    DefaultTableModel model = new DefaultTableModel();
+    model.addColumn("From");
+
+    for (Message mensaje : mensajes) {
+        Address[] fromAddresses = mensaje.getFrom();
+        if (fromAddresses != null && fromAddresses.length > 0) {
+            String from = fromAddresses[0].toString();
+            model.addRow(new Object[]{from});
         }
-        
-        tabla.setModel(model);
-        this.add(tabla,BorderLayout.CENTER);
     }
+
+    JTable tabla = new JTable(model);
+    this.add(new JScrollPane(tabla), BorderLayout.CENTER);
+}
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                new MainFrame(new Conexion("adam22fhidalgo@inslaferreria.cat","Kacharel13!")).setVisible(true);
+                new MainFrame("adam22fhidalgo@inslaferreria.cat","Kacharel13!").setVisible(true);
             }
         });
     }
