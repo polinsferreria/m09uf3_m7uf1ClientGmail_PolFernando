@@ -28,7 +28,7 @@ import javax.swing.JOptionPane;
 public class Conexion {
 
     private Transport transport;
-    
+
     private String email;
     private String password;
 
@@ -36,8 +36,6 @@ public class Conexion {
         this.email = email;
         this.password = password;
     }
-    
-    
 
     public int loginTransport() {
 
@@ -64,8 +62,8 @@ public class Conexion {
         }
 
     }
-    
-     public List<Message> obtenerMensajes() {
+
+    public List<Message> obtenerMensajes() throws AuthenticationFailedException {
         List<Message> mensajes = new ArrayList<>();
 
         Properties props = new Properties();
@@ -88,12 +86,31 @@ public class Conexion {
 
             inbox.close(false);
             store.close();
+        } catch (AuthenticationFailedException e) {
+            throw e; // Re-throw the exception to indicate authentication failure.
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         return mensajes;
     }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
     
     
+
 }

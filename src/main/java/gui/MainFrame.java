@@ -21,6 +21,8 @@ public class MainFrame extends JFrame {
         setSize(400, 300);
         setLocationRelativeTo(null);
 
+        System.out.println(c.getEmail());
+        
         // Crear el menú
         JMenuBar menuBar = new JMenuBar();
         JMenu menu = new JMenu("Opcions");
