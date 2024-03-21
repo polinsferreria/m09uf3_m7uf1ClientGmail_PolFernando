@@ -85,7 +85,7 @@ public class LoginFrame extends JFrame {
                 Conexion c = new Conexion(mail, new String(password));
                 switch (c.loginTransport()) {
                     case 1:
-                        MainFrame m = new MainFrame(c);
+                        MainFrame m = new MainFrame(c.getEmail(),c.getPassword());
                         m.setVisible(true);
                         JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
                         dispose();

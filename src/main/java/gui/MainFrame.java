@@ -16,12 +16,14 @@ import logicaMail.Conexion;
 
 public class MainFrame extends JFrame {
 
-    public MainFrame(Conexion c) {
+    public MainFrame(String user, String password) {
+        
+        
         setTitle("Mail Application");
         setSize(400, 300);
         setLocationRelativeTo(null);
 
-        System.out.println(c.getEmail());
+        Conexion c = new Conexion(user, password);
         
         // Crear el menú
         JMenuBar menuBar = new JMenuBar();
@@ -35,12 +37,8 @@ public class MainFrame extends JFrame {
         JMenuItem actualizarItem = new JMenuItem("Actualitzar", actualizarScaledIcon);
         actualizarItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                try {
-                    // Lógica para actualizar correos
-                    crearTablaMensajes(c.obtenerMensajes());
-                } catch (MessagingException ex) {
-                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                // Lógica para actualizar correos
+                c.downloadEmails();
                 
                 
             }
@@ -80,7 +78,7 @@ public class MainFrame extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                new MainFrame(new Conexion("s","s")).setVisible(true);
+                new MainFrame(new Conexion("adam22fhidalgo@inslaferreria.cat","Kacharel13!")).setVisible(true);
             }
         });
     }
