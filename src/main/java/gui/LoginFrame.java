@@ -15,7 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import logicaMail.Conexion;
+import logicaMail.ConexionEmails;
 
 /**
  *
@@ -82,25 +82,19 @@ public class LoginFrame extends JFrame {
                 String mail = mailField.getText();
                 char[] password = passwordField.getPassword();
 
-                Conexion c = new Conexion(mail, new String(password));
-                switch (c.loginTransport()) {
-                    case 1:
-                        MainFrame m = new MainFrame(mail,new String(password));
-                        System.out.println(mail + " // " +new String(password));
-                        m.setVisible(true);
-                        JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                        dispose();
-                        break;
-                    case 2:
-                        JOptionPane.showMessageDialog(LoginFrame.this, "Incorrect email or password", "Authentication Error", JOptionPane.ERROR_MESSAGE);
-                        break;
-                    case 3:
-                        JOptionPane.showMessageDialog(LoginFrame.this, "Mail provider not found", "Error", JOptionPane.ERROR_MESSAGE);
-                        break;
-                    case 4:
-                        JOptionPane.showMessageDialog(LoginFrame.this, "An error occurred while connecting to the mail server", "Connection Error", JOptionPane.ERROR_MESSAGE);
-                        break;
+                ConexionEmails c = new ConexionEmails(mail, new String(password));
+                if (c.checkLogin()) {
+                    MainFrame m = new MainFrame(c);
+                    //System.out.println(mail + " // " + new String(password));
+                    m.setVisible(true);
+                    JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    dispose();
+                    
+                } else {
+                    JOptionPane.showMessageDialog(LoginFrame.this, "Incorrect email or password", "Authentication Error", JOptionPane.ERROR_MESSAGE);
+
                 }
+
                 // Limpia los campos después de intentar iniciar sesión
                 mailField.setText("");
                 passwordField.setText("");

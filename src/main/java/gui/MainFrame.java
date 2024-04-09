@@ -18,14 +18,14 @@ import logicaMail.ConexionEmails;
 
 public class MainFrame extends JFrame {
 
-    public MainFrame(String user, String password) {
+    public MainFrame(ConexionEmails c) {
         
         
         setTitle("Mail Application");
         setSize(400, 300);
         setLocationRelativeTo(null);
 
-        ConexionEmails c = new ConexionEmails(user, password);
+        //ConexionEmails c = new ConexionEmails(user, password);
         
         // Crear el menú
         JMenuBar menuBar = new JMenuBar();
@@ -83,7 +83,7 @@ public class MainFrame extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                new MainFrame("adam22fhidalgo@inslaferreria.cat","Kacharel13!").setVisible(true);
+                new MainFrame(new ConexionEmails("@", "addsf")).setVisible(true);
             }
         });
     }

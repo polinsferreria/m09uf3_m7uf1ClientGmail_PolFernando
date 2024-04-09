@@ -22,23 +22,23 @@ public class ConexionEmails {
 
     private final String email;
     private final String password;
+    private Properties properties;
+    private Store store;
 
-    public ConexionEmails(String email,String password) {
+    public ConexionEmails(String email, String password) {
         this.email = email;
         this.password = password;
-        
-    }
-    
-    
 
-   private Properties getServerProperties(String protocol, String host,
+    }
+
+    private Properties getServerProperties(String protocol, String host,
             String port) {
         Properties properties = new Properties();
- 
+
         // server setting
         properties.put(String.format("mail.%s.host", protocol), host);
         properties.put(String.format("mail.%s.port", protocol), port);
- 
+
         // SSL setting
         properties.setProperty(
                 String.format("mail.%s.socketFactory.class", protocol),
@@ -49,34 +49,54 @@ public class ConexionEmails {
         properties.setProperty(
                 String.format("mail.%s.socketFactory.port", protocol),
                 String.valueOf(port));
- 
+
         return properties;
     }
- 
+
     /**
      * Downloads new messages and fetches details for each message.
+     *
      * @param protocol
      * @param host
      * @param port
      * @param userName
      * @param password
      */
+    
+    public boolean checkLogin() {
+        try {
+            // Propiedades IMAP
+            properties = new Properties();
+            properties.setProperty("mail.store.protocol", "imaps");
+
+            // Crear una sesión
+            Session session = Session.getDefaultInstance(properties);
+
+            // Conectar al almacenamiento IMAP
+            store = session.getStore("imaps");
+            store.connect("imap.gmail.com", email, password);
+            //store.close(); // Cerrar la conexión inmediatamente si el inicio de sesión es exitoso
+            return true;
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public void downloadEmails() {
-        Properties properties = getServerProperties("imap","imap.gmail.com", "993");
         Session session = Session.getDefaultInstance(properties);
- 
+
         try {
             // connects to the message store
-            Store store = session.getStore("imap");
-            store.connect(email, password);
- 
+            //store.connect(email, password);
+
             // opens the inbox folder
             Folder folderInbox = store.getFolder("INBOX");
             folderInbox.open(Folder.READ_ONLY);
- 
+
             // fetches new messages from server
             Message[] messages = folderInbox.getMessages();
- 
+
             for (int i = 0; i < messages.length; i++) {
                 Message msg = messages[i];
                 Address[] fromAddress = msg.getFrom();
@@ -87,10 +107,10 @@ public class ConexionEmails {
                 String ccList = parseAddresses(msg
                         .getRecipients(RecipientType.CC));
                 String sentDate = msg.getSentDate().toString();
- 
+
                 String contentType = msg.getContentType();
                 String messageContent = "";
- 
+
                 if (contentType.contains("text/plain")
                         || contentType.contains("text/html")) {
                     try {
@@ -103,7 +123,7 @@ public class ConexionEmails {
                         ex.printStackTrace();
                     }
                 }
- 
+
                 // print out details of each message
                 System.out.println("Message #" + (i + 1) + ":");
                 System.out.println("\t From: " + from);
@@ -113,7 +133,7 @@ public class ConexionEmails {
                 System.out.println("\t Sent Date: " + sentDate);
                 System.out.println("\t Message: " + messageContent);
             }
- 
+
             // disconnect
             folderInbox.close(false);
             store.close();
@@ -125,7 +145,8 @@ public class ConexionEmails {
             ex.printStackTrace();
         }
     }
- 
+
+    
     /**
      * Returns a list of addresses in String format separated by comma
      *
@@ -134,16 +155,16 @@ public class ConexionEmails {
      */
     private String parseAddresses(Address[] address) {
         String listAddress = "";
- 
+
         if (address != null) {
             for (int i = 0; i < address.length; i++) {
                 listAddress += address[i].toString() + ", ";
             }
-        }
+        } 
         if (listAddress.length() > 1) {
             listAddress = listAddress.substring(0, listAddress.length() - 2);
         }
- 
+
         return listAddress;
     }
 }
