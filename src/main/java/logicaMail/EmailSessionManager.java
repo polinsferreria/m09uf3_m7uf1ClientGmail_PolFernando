@@ -1,8 +1,10 @@
 package logicaMail;
 
+import java.io.IOException;
 import javax.mail.*;
 import javax.mail.internet.*;
 import java.util.Properties;
+import javax.swing.table.DefaultTableModel;
 
 public class EmailSessionManager {
     private static EmailSessionManager instance;
@@ -41,12 +43,29 @@ public class EmailSessionManager {
         return instance;
     }
 
-    public Message[] receiveEmail() throws MessagingException {
+     public void receiveEmail(DefaultTableModel tableModel) throws MessagingException, IOException {
         if (emailFolder == null || !emailFolder.isOpen()) {
             emailFolder = store.getFolder("INBOX");
             emailFolder.open(Folder.READ_ONLY);
         }
-        return emailFolder.getMessages();
+        
+       
+        
+        Message[] messages = emailFolder.getMessages();
+        for (Message message : messages) {
+         
+            String from = InternetAddress.toString(message.getFrom());
+            String to = InternetAddress.toString(message.getRecipients(Message.RecipientType.TO));
+            String cc = InternetAddress.toString(message.getRecipients(Message.RecipientType.CC));
+            String subject = message.getSubject();
+            String sentDate = message.getSentDate().toString();
+            String content = message.getContent().toString();
+
+            // Agregar los datos al modelo de la tabla
+            Object[] rowData = {from, to, cc, subject, sentDate, content};
+            tableModel.addRow(rowData);
+            tableModel.fireTableDataChanged();
+        }
     }
 
     public void close() {

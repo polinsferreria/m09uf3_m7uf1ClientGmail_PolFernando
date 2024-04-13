@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import logicaMail.AttachmentChooser;
+import logicaMail.EmailReceiverThread;
 import logicaMail.EmailSender;
 import logicaMail.EmailSessionManager;
 
@@ -30,14 +31,17 @@ public class MainFrame extends JFrame {
         // Panel de bandeja de entrada
         JPanel inboxPanel = new JPanel(new BorderLayout());
         String[] columnNames = {"From", "To", "CC", "Subject", "Sent Date", "Message"};
-        JTable inboxTable = new JTable(new DefaultTableModel(columnNames, 0));
+        DefaultTableModel inboxTableModel = new DefaultTableModel(columnNames, 0);
+        JTable inboxTable = new JTable(inboxTableModel);
         JScrollPane inboxScrollPane = new JScrollPane(inboxTable);
         JButton refreshButton = new JButton("Refresh");
         refreshButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    refreshInbox(inboxTable);
+                    refreshInbox(inboxTableModel);
                 } catch (MessagingException ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
                     Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
@@ -92,24 +96,10 @@ public class MainFrame extends JFrame {
         add(tabbedPane, BorderLayout.CENTER);
     }
 
-    private void refreshInbox(JTable inboxTable) throws MessagingException {
-        DefaultTableModel model = (DefaultTableModel) inboxTable.getModel();
-        model.setRowCount(0); // Limpiar la tabla antes de actualizarla
-        for (javax.mail.Message message : emailSessionManager.receiveEmail()) {
-            try {
-                // Obtener información del mensaje y agregarla a la tabla
-                model.addRow(new Object[]{
-                    message.getFrom()[0].toString(),
-                    message.getAllRecipients() != null ? message.getAllRecipients()[0].toString() : "",
-                    message.getRecipients(Message.RecipientType.CC) != null ? message.getRecipients(Message.RecipientType.CC)[0].toString() : "",
-                    message.getSubject(),
-                    message.getSentDate(),
-                    message.getContent()
-                });
-            } catch (IOException ex) {
-                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+    private void refreshInbox(DefaultTableModel inboxTableModel) throws MessagingException, IOException {
+        inboxTableModel.setRowCount(0); // Limpiar la tabla antes de actualizarla
+        EmailReceiverThread receiverThread = new EmailReceiverThread(emailSessionManager, inboxTableModel);
+        receiverThread.start();
     }
 
     public static void main(String[] args) {
