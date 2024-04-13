@@ -1,89 +1,127 @@
 package gui;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.List;
-import java.awt.HeadlessException;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.Transport;
-import javax.swing.JFrame;
-import javax.swing.table.DefaultTableModel;
-import logicaMail.Conexion;
-import logicaMail.ConexionEmails;
+import logicaMail.AttachmentChooser;
+import logicaMail.EmailSender;
+import logicaMail.EmailSessionManager;
 
 public class MainFrame extends JFrame {
 
-    public MainFrame(ConexionEmails c) {
-        
-        
+    private final EmailSessionManager emailSessionManager;
+
+    public MainFrame(String username, String password) throws MessagingException {
+
         setTitle("Mail Application");
-        setSize(400, 300);
+        setSize(800, 600);
         setLocationRelativeTo(null);
 
-        //ConexionEmails c = new ConexionEmails(user, password);
-        
-        // Crear el menú
-        JMenuBar menuBar = new JMenuBar();
-        JMenu menu = new JMenu("Opcions");
+        emailSessionManager = EmailSessionManager.getInstance(username, password);
 
-        // Crear las opciones del menú con iconos
-        ImageIcon actualizarIcon = new ImageIcon("actualizar.png");
-        Image actualizarImage = actualizarIcon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
-        ImageIcon actualizarScaledIcon = new ImageIcon(actualizarImage);
+        JTabbedPane tabbedPane = new JTabbedPane();
 
-        JMenuItem actualizarItem = new JMenuItem("Actualitzar", actualizarScaledIcon);
-        actualizarItem.addActionListener(new ActionListener() {
+        // Panel de bandeja de entrada
+        JPanel inboxPanel = new JPanel(new BorderLayout());
+        String[] columnNames = {"From", "To", "CC", "Subject", "Sent Date", "Message"};
+        JTable inboxTable = new JTable(new DefaultTableModel(columnNames, 0));
+        JScrollPane inboxScrollPane = new JScrollPane(inboxTable);
+        JButton refreshButton = new JButton("Refresh");
+        refreshButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-               
-               c.downloadEmails();
-                
+                try {
+                    refreshInbox(inboxTable);
+                } catch (MessagingException ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
+        inboxPanel.add(inboxScrollPane, BorderLayout.CENTER);
+        inboxPanel.add(refreshButton, BorderLayout.SOUTH);
 
-        ImageIcon escribirIcon = new ImageIcon("escribir.png");
-        Image escribirImage = escribirIcon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
-        ImageIcon escribirI = new ImageIcon(actualizarImage);
-        JMenuItem escribirItem = new JMenuItem("Escriure", escribirI);
-        escribirItem.addActionListener(new ActionListener() {
+        // Panel de enviar mensaje
+        JPanel composePanel = new JPanel(new BorderLayout());
+        JLabel toLabel = new JLabel("To:");
+        JTextField toField = new JTextField(30);
+        JLabel subjectLabel = new JLabel("Subject:");
+        JTextField subjectField = new JTextField(30);
+        JLabel bodyLabel = new JLabel("Body:");
+        JTextArea bodyArea = new JTextArea(10, 30);
+        JScrollPane bodyScrollPane = new JScrollPane(bodyArea);
+        JButton sendButton = new JButton("Send");
+        sendButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-
+                String to = toField.getText();
+                String subject = subjectField.getText();
+                String body = bodyArea.getText();
+                try {
+                    // Llamar al método para enviar el correo electrónico usando la clase de logicaMail
+                    EmailSender.sendEmailWithAttachment(to, subject, body, AttachmentChooser.chooseAttachments());
+                    JOptionPane.showMessageDialog(MainFrame.this, "Email sent successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    // Limpiar los campos después de enviar el correo electrónico
+                    toField.setText("");
+                    subjectField.setText("");
+                    bodyArea.setText("");
+                } catch (MessagingException ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(MainFrame.this, "Error sending email: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
+        JPanel composeFieldsPanel = new JPanel(new GridLayout(3, 2));
+        composeFieldsPanel.add(toLabel);
+        composeFieldsPanel.add(toField);
+        composeFieldsPanel.add(subjectLabel);
+        composeFieldsPanel.add(subjectField);
+        composeFieldsPanel.add(bodyLabel);
+        composeFieldsPanel.add(bodyScrollPane);
+        composePanel.add(composeFieldsPanel, BorderLayout.CENTER);
+        composePanel.add(sendButton, BorderLayout.SOUTH);
 
-        // Agregar las opciones al menú
-        menu.add(actualizarItem);
-        menu.add(escribirItem);
-        menuBar.add(menu);
-        setJMenuBar(menuBar);
+        // Agregar las pestañas al panel de pestañas
+        tabbedPane.addTab("Inbox", inboxPanel);
+        tabbedPane.addTab("Compose", composePanel);
 
+        // Agregar el panel de pestañas al marco principal
+        add(tabbedPane, BorderLayout.CENTER);
     }
-    
-    private void crearTablaMensajes(List<Message> mensajes) throws MessagingException {
-    DefaultTableModel model = new DefaultTableModel();
-    model.addColumn("From");
 
-    for (Message mensaje : mensajes) {
-        Address[] fromAddresses = mensaje.getFrom();
-        if (fromAddresses != null && fromAddresses.length > 0) {
-            String from = fromAddresses[0].toString();
-            model.addRow(new Object[]{from});
+    private void refreshInbox(JTable inboxTable) throws MessagingException {
+        DefaultTableModel model = (DefaultTableModel) inboxTable.getModel();
+        model.setRowCount(0); // Limpiar la tabla antes de actualizarla
+        for (javax.mail.Message message : emailSessionManager.receiveEmail()) {
+            try {
+                // Obtener información del mensaje y agregarla a la tabla
+                model.addRow(new Object[]{
+                    message.getFrom()[0].toString(),
+                    message.getAllRecipients() != null ? message.getAllRecipients()[0].toString() : "",
+                    message.getRecipients(Message.RecipientType.CC) != null ? message.getRecipients(Message.RecipientType.CC)[0].toString() : "",
+                    message.getSubject(),
+                    message.getSentDate(),
+                    message.getContent()
+                });
+            } catch (IOException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
-
-    JTable tabla = new JTable(model);
-    this.add(new JScrollPane(tabla), BorderLayout.CENTER);
-}
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                new MainFrame(new ConexionEmails("@", "addsf")).setVisible(true);
+                try {
+                    // Ejemplo de uso
+                    // Debes reemplazar los valores "@", "addsf" con el nombre de usuario y contraseña reales
+                    new MainFrame("", "").setVisible(true);
+                } catch (MessagingException ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }

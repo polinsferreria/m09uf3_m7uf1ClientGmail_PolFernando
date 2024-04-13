@@ -9,6 +9,7 @@ import javax.mail.Session;
 import javax.mail.Store;
 
 public class borrar {
+   
     private static Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {

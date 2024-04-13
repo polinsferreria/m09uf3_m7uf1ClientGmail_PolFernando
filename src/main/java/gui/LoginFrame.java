@@ -6,6 +6,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.mail.MessagingException;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -15,7 +18,6 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import logicaMail.ConexionEmails;
 
 /**
  *
@@ -82,13 +84,21 @@ public class LoginFrame extends JFrame {
                 String mail = mailField.getText();
                 char[] password = passwordField.getPassword();
 
-                ConexionEmails c = new ConexionEmails(mail, new String(password));
-                if (c.checkLogin()) {
-                    MainFrame m = new MainFrame(c);
+             
+                if (true) {
+                    MainFrame m;
+                    try {
+                        m = new MainFrame(mail,new String(password));
+                                            m.setVisible(true);
+                                            
+                                             JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                  
+                    } catch (MessagingException ex) {
+                        Logger.getLogger(LoginFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                     //System.out.println(mail + " // " + new String(password));
-                    m.setVisible(true);
-                    JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    dispose();
+
+                     dispose();
                     
                 } else {
                     JOptionPane.showMessageDialog(LoginFrame.this, "Incorrect email or password", "Authentication Error", JOptionPane.ERROR_MESSAGE);
