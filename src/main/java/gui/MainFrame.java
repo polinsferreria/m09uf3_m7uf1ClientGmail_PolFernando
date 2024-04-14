@@ -57,10 +57,12 @@ public class MainFrame extends JFrame {
                 int selectedRow = inboxTable.getSelectedRow();
                 //if (selectedRow != -1) {
                     try {
+                        Folder f = emailSessionManager.getfolder("INBOX");
                         // Obtener el mensaje seleccionado
-                        Message selectedMessage = getEmailFromRow(selectedRow); // Debes implementar este método para obtener el mensaje desde la fila seleccionada en la tabla
+                        Message selectedMessage = getEmailFromRow(selectedRow,f); // Debes implementar este método para obtener el mensaje desde la fila seleccionada en la tabla
                         // Eliminar el mensaje
                         emailSessionManager.deleteEmail(selectedMessage);
+                        f.close(true);
                         // Actualizar la tabla
                         refreshFolder(inboxTableModel, "INBOX"); // Debes tener un método refreshFolder que actualice la tabla
                     } catch (MessagingException ex) {
@@ -90,7 +92,7 @@ public class MainFrame extends JFrame {
         refreshSentButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    refreshFolder(sentTableModel, "enviats");
+                    refreshFolder(sentTableModel, "SEND");
                 } catch (MessagingException ex) {
                     Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (IOException ex) {
@@ -102,7 +104,7 @@ public class MainFrame extends JFrame {
         sentPanel.add(refreshSentButton, BorderLayout.SOUTH);
 
         // Agregar la pestaña de correos enviados al panel de pestañas
-        tabbedPane.addTab("Sent", sentPanel);
+        
         
         //boton para configurar los correos que se quiere obtener:
         JButton getHeadersButton = new JButton("Obtener Encabezados");
@@ -166,6 +168,7 @@ public class MainFrame extends JFrame {
 
         // Agregar las pestañas al panel de pestañas
         tabbedPane.addTab("Inbox", inboxPanel);
+        tabbedPane.addTab("Sent", sentPanel);
         tabbedPane.addTab("Compose", composePanel);
 
         // Agregar el panel de pestañas al marco principal
@@ -185,9 +188,9 @@ public class MainFrame extends JFrame {
         receiverThread.start(); // ¡No olvides iniciar el hilo!
     }
 
-    private Message getEmailFromRow(int selectedRow) throws MessagingException {
+    private Message getEmailFromRow(int selectedRow, Folder f) throws MessagingException {
         // Suponiendo que la columna 0 de la tabla contiene el objeto Message asociado a cada fila
-        Folder f = emailSessionManager.getfolder("INBOX");
+        
         f.open(Folder.READ_WRITE);
         Object messageObject = f.getMessage(1);
         //f.close(true);

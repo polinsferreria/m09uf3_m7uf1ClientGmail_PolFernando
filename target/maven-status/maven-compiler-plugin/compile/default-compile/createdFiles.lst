@@ -1,5 +1,4 @@
 gui\MainFrame$5.class
-main\PT2CLIENTGMAIL.class
 logicaMail\AttachmentChooser.class
 logicaMail\EmailSender.class
 gui\MainFrame$4.class
@@ -12,5 +11,4 @@ logicaMail\EmailSessionManager.class
 logicaMail\EmailSender$1.class
 gui\LoginFrame$2.class
 gui\LoginFrame$1.class
-borrar.class
 gui\MainFrame$1.class
