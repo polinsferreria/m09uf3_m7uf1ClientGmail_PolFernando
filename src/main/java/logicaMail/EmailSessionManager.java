@@ -55,8 +55,8 @@ public class EmailSessionManager {
             for (Folder folder : folders) {
                 System.out.println(folder.getName());
             }
-
-            emailFolder = store.getFolder(folderName); // Utilizar el nombre de la carpeta proporcionado
+            
+            emailFolder = getfolder(folderName);//store.getFolder(folderName); // Utilizar el nombre de la carpeta proporcionado
             emailFolder.open(Folder.READ_ONLY);
         }
 
@@ -77,7 +77,10 @@ public class EmailSessionManager {
         }
 
     }
-
+    public Folder getfolder(String folderName) throws MessagingException{
+        Folder e = store.getFolder(folderName);
+        return e;
+    }
     public void receiveEmail(DefaultTableModel tableModel, String folderName, int n) throws MessagingException, IOException {
         if (emailFolder == null || !emailFolder.isOpen()) {
             emailFolder = store.getFolder("INBOX"); // Cambia "INBOX" al directorio específico que desees

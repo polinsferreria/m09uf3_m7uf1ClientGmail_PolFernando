@@ -7,6 +7,7 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import logicaMail.AttachmentChooser;
@@ -17,6 +18,7 @@ import logicaMail.EmailSessionManager;
 public class MainFrame extends JFrame {
 
     private final EmailSessionManager emailSessionManager;
+    private JTable inboxTable;
 
     public MainFrame(String username, String password) throws MessagingException {
 
@@ -57,9 +59,10 @@ public class MainFrame extends JFrame {
         JPanel inboxPanel = new JPanel(new BorderLayout());
         String[] columnNames = {"From", "To", "CC", "Subject", "Sent Date", "Message"};
         DefaultTableModel inboxTableModel = new DefaultTableModel(columnNames, 0);
-        JTable inboxTable = new JTable(inboxTableModel);
+        inboxTable = new JTable(inboxTableModel);
         JScrollPane inboxScrollPane = new JScrollPane(inboxTable);
         JButton refreshButton = new JButton("Refresh");
+        JButton deleteButton = new JButton("DELETE");
 
         refreshButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -74,8 +77,32 @@ public class MainFrame extends JFrame {
             }
         });
 
+        deleteButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = inboxTable.getSelectedRow();
+                //if (selectedRow != -1) {
+                    try {
+                        // Obtener el mensaje seleccionado
+                        Message selectedMessage = getEmailFromRow(selectedRow); // Debes implementar este método para obtener el mensaje desde la fila seleccionada en la tabla
+                        // Eliminar el mensaje
+                        emailSessionManager.deleteEmail(selectedMessage);
+                        // Actualizar la tabla
+                        refreshFolder(inboxTableModel, "INBOX"); // Debes tener un método refreshFolder que actualice la tabla
+                    } catch (MessagingException ex) {
+                        ex.printStackTrace();
+                        // Manejar la excepción según sea necesario
+                    } catch (IOException ex) {
+                        Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                /*} else {
+                    JOptionPane.showMessageDialog(MainFrame.this, "Por favor seleccione un correo electrónico para eliminar", "Error", JOptionPane.ERROR_MESSAGE);
+                }*/
+            }
+        });
+
         inboxPanel.add(inboxScrollPane, BorderLayout.CENTER);
-        inboxPanel.add(refreshButton, BorderLayout.SOUTH);
+        inboxPanel.add(refreshButton, BorderLayout.NORTH);
+        inboxPanel.add(deleteButton, BorderLayout.SOUTH);
         //boton para configurar los correos que se quiere obtener:
         JButton getHeadersButton = new JButton("Obtener Encabezados");
         getHeadersButton.addActionListener(new ActionListener() {
@@ -86,7 +113,7 @@ public class MainFrame extends JFrame {
                     int n = Integer.parseInt(input);
                     if (n >= 0 && n <= 10) {
                         // Llamar a un método para obtener los encabezados del correo desde el primer correo hasta el n-10
-                        refreshFolderLimit(sentTableModel, "INBOX", n);
+                        refreshFolderLimit(inboxTableModel, "INBOX", n);
                     } else {
                         JOptionPane.showMessageDialog(MainFrame.this, "Por favor ingrese un número válido del 0 al 10", "Error", JOptionPane.ERROR_MESSAGE);
                     }
@@ -155,6 +182,17 @@ public class MainFrame extends JFrame {
         tableModel.setRowCount(0); // Limpiar la tabla antes de actualizarla
         EmailReceiverThread receiverThread = new EmailReceiverThread(emailSessionManager, tableModel, folderName, n);
         receiverThread.start(); // ¡No olvides iniciar el hilo!
+    }
+
+    private Message getEmailFromRow(int selectedRow) throws MessagingException {
+        // Suponiendo que la columna 0 de la tabla contiene el objeto Message asociado a cada fila
+        Folder f = emailSessionManager.getfolder("INBOX");
+        Object messageObject = f.getMessage(1);
+        if (messageObject instanceof Message) {
+            return (Message) messageObject;
+        } else {
+            throw new MessagingException("No se pudo obtener el mensaje seleccionado");
+        }
     }
 
     public static void main(String[] args) {
