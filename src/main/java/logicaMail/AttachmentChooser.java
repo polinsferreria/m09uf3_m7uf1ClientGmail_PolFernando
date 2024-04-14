@@ -1,19 +1,26 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Esta clase proporciona un método para seleccionar archivos adjuntos utilizando un JFileChooser.
  */
 package logicaMail;
+
 import javax.swing.*;
 import java.io.File;
 
 public class AttachmentChooser {
-  public static File[] chooseAttachments() {
-      JFileChooser fileChooser = new JFileChooser();
-      fileChooser.setMultiSelectionEnabled(true);
-      int option = fileChooser.showOpenDialog(null);
-      if (option == JFileChooser.APPROVE_OPTION) {
-          return fileChooser.getSelectedFiles();
-      }
-      return new File[] {};
-  }
+    // Método estático para elegir archivos adjuntos
+    public static File[] chooseAttachments() {
+        // Crear un JFileChooser
+        JFileChooser fileChooser = new JFileChooser();
+        // Permitir la selección de múltiples archivos
+        fileChooser.setMultiSelectionEnabled(true);
+        // Mostrar el cuadro de diálogo para abrir archivos
+        int option = fileChooser.showOpenDialog(null);
+        // Verificar si se seleccionaron archivos
+        if (option == JFileChooser.APPROVE_OPTION) {
+            // Obtener los archivos seleccionados
+            return fileChooser.getSelectedFiles();
+        }
+        // Devolver un arreglo vacío si no se seleccionaron archivos
+        return new File[] {};
+    }
 }

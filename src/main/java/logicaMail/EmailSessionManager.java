@@ -16,10 +16,12 @@ public class EmailSessionManager {
     private Store store;
     private Folder emailFolder;
 
+    // Constructor privado para asegurar la instancia única
     private EmailSessionManager(String username, String password) throws MessagingException {
         this.username = username;
         this.password = password;
 
+        // Configuración de las propiedades para la sesión de correo
         Properties properties = new Properties();
         properties.put("mail.store.protocol", "imaps");
         properties.put("mail.imaps.host", "imap.gmail.com");
@@ -30,6 +32,7 @@ public class EmailSessionManager {
         this.store.connect(username, password);
     }
 
+    // Obtener una instancia única de EmailSessionManager
     public static synchronized EmailSessionManager getInstance(String username, String password) throws MessagingException {
         if (instance == null) {
             instance = new EmailSessionManager(username, password);
@@ -37,6 +40,7 @@ public class EmailSessionManager {
         return instance;
     }
 
+    // Obtener la instancia actual de EmailSessionManager
     public static synchronized EmailSessionManager getInstance() throws IllegalStateException {
         if (instance == null) {
             throw new IllegalStateException("EmailSessionManager is not initialized. Please login first.");
@@ -44,25 +48,28 @@ public class EmailSessionManager {
         return instance;
     }
 
+    // Método para eliminar un correo electrónico
     public void deleteEmail(Message message) throws MessagingException {
         // Marcar el mensaje como eliminado
         message.setFlag(Flags.Flag.DELETED, true);
     }
 
+    // Método para recibir correos electrónicos de una carpeta específica
     public void receiveEmail(DefaultTableModel tableModel, String folderName) throws MessagingException, IOException {
         if (emailFolder == null || !emailFolder.isOpen()) {
-            Folder[] folders = store.getDefaultFolder().list("*");//para obtener los folders q tiene el correo
+            // Abre la carpeta de correo específica
+            Folder[] folders = store.getDefaultFolder().list("*");
             for (Folder folder : folders) {
                 System.out.println(folder.getName());
             }
-            
-            emailFolder = getfolder(folderName);//store.getFolder(folderName); // Utilizar el nombre de la carpeta proporcionado
+            emailFolder = getfolder(folderName);
             emailFolder.open(Folder.READ_ONLY);
         }
 
+        // Obtener los mensajes de la carpeta
         Message[] messages = emailFolder.getMessages();
         for (Message message : messages) {
-
+            // Obtener información del mensaje
             String from = InternetAddress.toString(message.getFrom());
             String to = InternetAddress.toString(message.getRecipients(Message.RecipientType.TO));
             String cc = InternetAddress.toString(message.getRecipients(Message.RecipientType.CC));
@@ -75,14 +82,18 @@ public class EmailSessionManager {
             tableModel.addRow(rowData);
             tableModel.fireTableDataChanged();
         }
-
     }
+
+    // Método para obtener una carpeta específica
     public Folder getfolder(String folderName) throws MessagingException{
         Folder e = store.getFolder(folderName);
         return e;
     }
+
+    // Método para recibir correos electrónicos hasta el n-ésimo correo de una carpeta específica
     public void receiveEmail(DefaultTableModel tableModel, String folderName, int n) throws MessagingException, IOException {
         if (emailFolder == null || !emailFolder.isOpen()) {
+            // Abre la carpeta de correo específica
             emailFolder = store.getFolder("INBOX"); // Cambia "INBOX" al directorio específico que desees
             emailFolder.open(Folder.READ_ONLY);
         }
@@ -110,8 +121,10 @@ public class EmailSessionManager {
         }
     }
 
+    // Método para cerrar la sesión de correo
     public void close() {
         try {
+            // Cerrar la carpeta y la tienda de correo
             if (emailFolder != null && emailFolder.isOpen()) {
                 emailFolder.close(false);
             }
@@ -121,10 +134,12 @@ public class EmailSessionManager {
         } catch (MessagingException e) {
             e.printStackTrace();
         } finally {
+            // Restablecer la instancia a nula
             instance = null;
         }
     }
 
+    // Métodos de acceso para obtener el nombre de usuario, contraseña y tienda de correo
     public String getUsername() {
         return username;
     }
