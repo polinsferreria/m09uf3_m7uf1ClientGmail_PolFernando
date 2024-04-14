@@ -30,31 +30,6 @@ public class MainFrame extends JFrame {
 
         JTabbedPane tabbedPane = new JTabbedPane();
 
-        // Panel de correos enviados
-        JPanel sentPanel = new JPanel(new BorderLayout());
-        String[] sentColumnNames = {"From", "To", "CC", "Subject", "Sent Date", "Message"};
-        DefaultTableModel sentTableModel = new DefaultTableModel(sentColumnNames, 0);
-        JTable sentTable = new JTable(sentTableModel);
-        JScrollPane sentScrollPane = new JScrollPane(sentTable);
-        JButton refreshSentButton = new JButton("Refresh");
-
-        refreshSentButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    refreshFolder(sentTableModel, "enviats");
-                } catch (MessagingException ex) {
-                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
-                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
-        sentPanel.add(sentScrollPane, BorderLayout.CENTER);
-        sentPanel.add(refreshSentButton, BorderLayout.SOUTH);
-
-        // Agregar la pestaña de correos enviados al panel de pestañas
-        tabbedPane.addTab("Sent", sentPanel);
-
         // Panel de bandeja de entrada
         JPanel inboxPanel = new JPanel(new BorderLayout());
         String[] columnNames = {"From", "To", "CC", "Subject", "Sent Date", "Message"};
@@ -103,6 +78,32 @@ public class MainFrame extends JFrame {
         inboxPanel.add(inboxScrollPane, BorderLayout.CENTER);
         inboxPanel.add(refreshButton, BorderLayout.NORTH);
         inboxPanel.add(deleteButton, BorderLayout.SOUTH);
+        
+        // Panel de correos enviados
+        JPanel sentPanel = new JPanel(new BorderLayout());
+        String[] sentColumnNames = {"From", "To", "CC", "Subject", "Sent Date", "Message"};
+        DefaultTableModel sentTableModel = new DefaultTableModel(sentColumnNames, 0);
+        JTable sentTable = new JTable(sentTableModel);
+        JScrollPane sentScrollPane = new JScrollPane(sentTable);
+        JButton refreshSentButton = new JButton("Refresh");
+
+        refreshSentButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    refreshFolder(sentTableModel, "enviats");
+                } catch (MessagingException ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
+        sentPanel.add(sentScrollPane, BorderLayout.CENTER);
+        sentPanel.add(refreshSentButton, BorderLayout.SOUTH);
+
+        // Agregar la pestaña de correos enviados al panel de pestañas
+        tabbedPane.addTab("Sent", sentPanel);
+        
         //boton para configurar los correos que se quiere obtener:
         JButton getHeadersButton = new JButton("Obtener Encabezados");
         getHeadersButton.addActionListener(new ActionListener() {
@@ -187,12 +188,17 @@ public class MainFrame extends JFrame {
     private Message getEmailFromRow(int selectedRow) throws MessagingException {
         // Suponiendo que la columna 0 de la tabla contiene el objeto Message asociado a cada fila
         Folder f = emailSessionManager.getfolder("INBOX");
+        f.open(Folder.READ_WRITE);
         Object messageObject = f.getMessage(1);
+        //f.close(true);
         if (messageObject instanceof Message) {
+            
             return (Message) messageObject;
+            
         } else {
             throw new MessagingException("No se pudo obtener el mensaje seleccionado");
         }
+        
     }
 
     public static void main(String[] args) {

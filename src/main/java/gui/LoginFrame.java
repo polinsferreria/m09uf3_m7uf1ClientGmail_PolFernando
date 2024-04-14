@@ -12,7 +12,6 @@ import javax.mail.MessagingException;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -20,8 +19,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 /**
- *
- * @author usuario
+ * Clase que representa la ventana de inicio de sesión.
  */
 public class LoginFrame extends JFrame {
 
@@ -29,10 +27,16 @@ public class LoginFrame extends JFrame {
     private JTextField mailField;
     private JPasswordField passwordField;
 
+    /**
+     * Constructor de la clase.
+     */
     public LoginFrame() {
         initializeUI();
     }
 
+    /**
+     * Inicializa la interfaz de usuario.
+     */
     private void initializeUI() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(400, 300);
@@ -46,6 +50,9 @@ public class LoginFrame extends JFrame {
         setVisible(true);
     }
 
+    /**
+     * Crea los componentes de inicio de sesión y los agrega al panel.
+     */
     private void createLoginComponents() {
         loginPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -83,23 +90,21 @@ public class LoginFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String mail = mailField.getText();
                 char[] password = passwordField.getPassword();
-
-             
                 if (true) {
                     MainFrame m;
                     try {
-                        m = new MainFrame(mail,new String(password));
-                                            m.setVisible(true);
-                                            
-                                             JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                  
+                        m = new MainFrame(mail, new String(password));
+                        m.setVisible(true);
+
+                        JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
                     } catch (MessagingException ex) {
                         Logger.getLogger(LoginFrame.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     //System.out.println(mail + " // " + new String(password));
 
-                     dispose();
-                    
+                    dispose();
+
                 } else {
                     JOptionPane.showMessageDialog(LoginFrame.this, "Incorrect email or password", "Authentication Error", JOptionPane.ERROR_MESSAGE);
 
@@ -115,6 +120,9 @@ public class LoginFrame extends JFrame {
         add(loginPanel);
     }
 
+    /**
+     * Método principal para iniciar la aplicación.
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
