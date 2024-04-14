@@ -28,17 +28,18 @@ public class MainFrame extends JFrame {
 
         JTabbedPane tabbedPane = new JTabbedPane();
 
-        // Panel de bandeja de entrada
-        JPanel inboxPanel = new JPanel(new BorderLayout());
-        String[] columnNames = {"From", "To", "CC", "Subject", "Sent Date", "Message"};
-        DefaultTableModel inboxTableModel = new DefaultTableModel(columnNames, 0);
-        JTable inboxTable = new JTable(inboxTableModel);
-        JScrollPane inboxScrollPane = new JScrollPane(inboxTable);
-        JButton refreshButton = new JButton("Refresh");
-        refreshButton.addActionListener(new ActionListener() {
+        // Panel de correos enviados
+        JPanel sentPanel = new JPanel(new BorderLayout());
+        String[] sentColumnNames = {"From", "To", "CC", "Subject", "Sent Date", "Message"};
+        DefaultTableModel sentTableModel = new DefaultTableModel(sentColumnNames, 0);
+        JTable sentTable = new JTable(sentTableModel);
+        JScrollPane sentScrollPane = new JScrollPane(sentTable);
+        JButton refreshSentButton = new JButton("Refresh");
+
+        refreshSentButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    refreshInbox(inboxTableModel);
+                    refreshFolder(sentTableModel, "enviats");
                 } catch (MessagingException ex) {
                     Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (IOException ex) {
@@ -46,8 +47,55 @@ public class MainFrame extends JFrame {
                 }
             }
         });
+        sentPanel.add(sentScrollPane, BorderLayout.CENTER);
+        sentPanel.add(refreshSentButton, BorderLayout.SOUTH);
+
+        // Agregar la pestaña de correos enviados al panel de pestañas
+        tabbedPane.addTab("Sent", sentPanel);
+
+        // Panel de bandeja de entrada
+        JPanel inboxPanel = new JPanel(new BorderLayout());
+        String[] columnNames = {"From", "To", "CC", "Subject", "Sent Date", "Message"};
+        DefaultTableModel inboxTableModel = new DefaultTableModel(columnNames, 0);
+        JTable inboxTable = new JTable(inboxTableModel);
+        JScrollPane inboxScrollPane = new JScrollPane(inboxTable);
+        JButton refreshButton = new JButton("Refresh");
+
+        refreshButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    refreshFolder(inboxTableModel, "INBOX");
+                } catch (MessagingException ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(MainFrame.this, "Carpeta, no existe.", "vales", JOptionPane.ERROR_MESSAGE);
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
+
         inboxPanel.add(inboxScrollPane, BorderLayout.CENTER);
         inboxPanel.add(refreshButton, BorderLayout.SOUTH);
+        //boton para configurar los correos que se quiere obtener:
+        JButton getHeadersButton = new JButton("Obtener Encabezados");
+        getHeadersButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Solicitar al usuario un número del 0 al 10
+                String input = JOptionPane.showInputDialog("Ingrese un número del 0 al 10:");
+                try {
+                    int n = Integer.parseInt(input);
+                    if (n >= 0 && n <= 10) {
+                        // Llamar a un método para obtener los encabezados del correo desde el primer correo hasta el n-10
+                        refreshFolderLimit(sentTableModel, "INBOX", n);
+                    } else {
+                        JOptionPane.showMessageDialog(MainFrame.this, "Por favor ingrese un número válido del 0 al 10", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(MainFrame.this, "Por favor ingrese un número válido del 0 al 10", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+        add(getHeadersButton, BorderLayout.NORTH); // Agregar el botón en la parte superior de la ventana
 
         // Panel de enviar mensaje
         JPanel composePanel = new JPanel(new BorderLayout());
@@ -96,10 +144,17 @@ public class MainFrame extends JFrame {
         add(tabbedPane, BorderLayout.CENTER);
     }
 
-    private void refreshInbox(DefaultTableModel inboxTableModel) throws MessagingException, IOException {
-        inboxTableModel.setRowCount(0); // Limpiar la tabla antes de actualizarla
-        EmailReceiverThread receiverThread = new EmailReceiverThread(emailSessionManager, inboxTableModel);
+    private void refreshFolder(DefaultTableModel tableModel, String folderName) throws MessagingException, IOException {
+        tableModel.setRowCount(0); // Limpiar la tabla antes de actualizarla
+        EmailReceiverThread receiverThread = new EmailReceiverThread(emailSessionManager, tableModel, folderName);
         receiverThread.start();
+    }
+
+    private void refreshFolderLimit(DefaultTableModel tableModel, String folderName, int n) {
+
+        tableModel.setRowCount(0); // Limpiar la tabla antes de actualizarla
+        EmailReceiverThread receiverThread = new EmailReceiverThread(emailSessionManager, tableModel, folderName, n);
+        receiverThread.start(); // ¡No olvides iniciar el hilo!
     }
 
     public static void main(String[] args) {
