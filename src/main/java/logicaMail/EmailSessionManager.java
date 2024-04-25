@@ -1,6 +1,9 @@
 package logicaMail;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import javax.mail.*;
 import javax.mail.internet.*;
 import java.util.Properties;
@@ -57,6 +60,34 @@ public class EmailSessionManager {
         emailFolder.close();
     }
 
+    
+    public void DowloadAdjuntoMessage(Message message) throws MessagingException, IOException {
+        if (emailFolder == null || !emailFolder.isOpen()) {
+            emailFolder = store.getFolder("INBOX"); // Cambia "INBOX" al directorio específico que desees
+            emailFolder.open(Folder.READ_ONLY);
+        }
+        
+        Object content = message.getContent();
+        if (content instanceof Multipart) {
+            Multipart multipart = (Multipart) content;
+            for (int i = 0; i < multipart.getCount(); i++) {
+                BodyPart bodyPart = multipart.getBodyPart(i);
+                if (Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition()) && bodyPart.getFileName() != null) {
+                    String fileName = bodyPart.getFileName();
+                    try (InputStream inputStream = bodyPart.getInputStream();
+                         OutputStream outputStream = new FileOutputStream("C\\\\:" + fileName)) {
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = inputStream.read(buffer)) != -1) {
+                            outputStream.write(buffer, 0, bytesRead);
+                        }
+                    }
+                    System.out.println("Archivo adjunto descargado: " + fileName);
+                }
+            }
+        }
+        
+    }
    
 
     // Método para obtener una carpeta específica

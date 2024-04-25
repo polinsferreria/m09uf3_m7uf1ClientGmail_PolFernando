@@ -37,6 +37,7 @@ public class MainFrame extends JFrame {
         inboxTable = new JTable(inboxTableModel);
         JScrollPane inboxScrollPane = new JScrollPane(inboxTable);
         JButton refreshButton = new JButton("Refresh");
+        JButton descargarArchivo = new JButton("Descargar Archivo");
         JButton deleteButton = new JButton("DELETE");
 
         refreshButton.addActionListener(new ActionListener() {
@@ -52,15 +53,39 @@ public class MainFrame extends JFrame {
             }
         });
 
+        descargarArchivo.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = inboxTable.getSelectedRow();
+                if (selectedRow != -1) {
+                    try {
+                        //Folder f = emailSessionManager.getfolder("INBOX");
+                        // Obtener el mensaje seleccionado
+                        //Message selectedMessage = getEmailFromRow(selectedRow,f); // Debes implementar este método para obtener el mensaje desde la fila seleccionada en la tabla
+                        Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow + 1);
+                        // Eliminar el mensaje
+                        emailSessionManager.DowloadAdjuntoMessage(selectedMessage);// descargar el archivo adjunto 
+                        
+                    } catch (MessagingException ex) {
+                        ex.printStackTrace();
+                        // Manejar la excepción según sea necesario
+                    } catch (IOException ex) {
+                        Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(MainFrame.this, "Por favor seleccione un correo electrónico para eliminar", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
         deleteButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = inboxTable.getSelectedRow();
                 if (selectedRow != -1) {
                     try {
-                        Folder f = emailSessionManager.getfolder("INBOX");
+                        //Folder f = emailSessionManager.getfolder("INBOX");
                         // Obtener el mensaje seleccionado
                         //Message selectedMessage = getEmailFromRow(selectedRow,f); // Debes implementar este método para obtener el mensaje desde la fila seleccionada en la tabla
-                        Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow+1);
+                        Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow + 1);
                         // Eliminar el mensaje
                         emailSessionManager.deleteEmail(selectedMessage);
                         //f.close(true);
@@ -103,6 +128,7 @@ public class MainFrame extends JFrame {
         });
         sentPanel.add(sentScrollPane, BorderLayout.CENTER);
         sentPanel.add(refreshSentButton, BorderLayout.SOUTH);
+        sentPanel.add(descargarArchivo, BorderLayout.SOUTH);
 
         // Agregar la pestaña de correos enviados al panel de pestañas
         //boton para configurar los correos que se quiere obtener:
@@ -181,10 +207,10 @@ public class MainFrame extends JFrame {
     }
 
     private void refreshFolderLimit(DefaultTableModel tableModel, String folderName, int n) {
-
         tableModel.setRowCount(0); // Limpiar la tabla antes de actualizarla
         EmailReceiverThread receiverThread = new EmailReceiverThread(emailSessionManager, tableModel, folderName, n);
         receiverThread.start(); // ¡No olvides iniciar el hilo!
+
     }
 
     public static void main(String[] args) {
