@@ -53,6 +53,8 @@ public class EmailSessionManager {
         System.out.println(message.getSubject());   
         // Marcar el mensaje como eliminado
         message.setFlag(Flags.Flag.DELETED, true);
+        
+        emailFolder.close();
     }
 
     // Método para recibir correos electrónicos de una carpeta específica
@@ -96,7 +98,7 @@ public class EmailSessionManager {
         // Suponiendo que la columna 0 de la tabla contiene el objeto Message asociado a cada fila
         if (emailFolder != null || !emailFolder.isOpen()) {
             emailFolder.open(Folder.READ_WRITE);
-            Object messageObject = emailFolder.getMessage(selectedRow-1);
+            Object messageObject = emailFolder.getMessage(selectedRow);
             //f.close(true);
             if (messageObject instanceof Message) {
 

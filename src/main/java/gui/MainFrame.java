@@ -55,12 +55,12 @@ public class MainFrame extends JFrame {
         deleteButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = inboxTable.getSelectedRow();
-                //if (selectedRow != -1) {
+                if (selectedRow != -1) {
                     try {
                         Folder f = emailSessionManager.getfolder("INBOX");
                         // Obtener el mensaje seleccionado
                         //Message selectedMessage = getEmailFromRow(selectedRow,f); // Debes implementar este método para obtener el mensaje desde la fila seleccionada en la tabla
-                        Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow);
+                        Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow+1);
                         // Eliminar el mensaje
                         emailSessionManager.deleteEmail(selectedMessage);
                         //f.close(true);
@@ -72,16 +72,16 @@ public class MainFrame extends JFrame {
                     } catch (IOException ex) {
                         Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                /*} else {
+                } else {
                     JOptionPane.showMessageDialog(MainFrame.this, "Por favor seleccione un correo electrónico para eliminar", "Error", JOptionPane.ERROR_MESSAGE);
-                }*/
+                }
             }
         });
 
         inboxPanel.add(inboxScrollPane, BorderLayout.CENTER);
         inboxPanel.add(refreshButton, BorderLayout.NORTH);
         inboxPanel.add(deleteButton, BorderLayout.SOUTH);
-        
+
         // Panel de correos enviados
         JPanel sentPanel = new JPanel(new BorderLayout());
         String[] sentColumnNames = {"From", "To", "CC", "Subject", "Sent Date", "Message"};
@@ -105,8 +105,6 @@ public class MainFrame extends JFrame {
         sentPanel.add(refreshSentButton, BorderLayout.SOUTH);
 
         // Agregar la pestaña de correos enviados al panel de pestañas
-        
-        
         //boton para configurar los correos que se quiere obtener:
         JButton getHeadersButton = new JButton("Obtener Encabezados");
         getHeadersButton.addActionListener(new ActionListener() {
@@ -188,8 +186,6 @@ public class MainFrame extends JFrame {
         EmailReceiverThread receiverThread = new EmailReceiverThread(emailSessionManager, tableModel, folderName, n);
         receiverThread.start(); // ¡No olvides iniciar el hilo!
     }
-
-    
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
