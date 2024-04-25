@@ -49,7 +49,7 @@ public class EmailReceiverThread extends Thread {
             if (isLimite) {
                 emailSessionManager.receiveEmail(tableModel, folderName, n); // Recibir correos hasta el límite establecido
             } else {
-                emailSessionManager.receiveEmail(tableModel, folderName); // Recibir todos los correos de la carpeta
+                emailSessionManager.receiveEmail(tableModel, folderName, -1); // Recibir todos los correos de la carpeta
             }
         } catch (Exception e) {
             e.printStackTrace();

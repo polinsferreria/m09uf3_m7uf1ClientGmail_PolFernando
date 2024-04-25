@@ -57,36 +57,7 @@ public class EmailSessionManager {
         emailFolder.close();
     }
 
-    // Método para recibir correos electrónicos de una carpeta específica
-    public void receiveEmail(DefaultTableModel tableModel, String folderName) throws MessagingException, IOException {
-        if (emailFolder == null || !emailFolder.isOpen()) {
-            // Abre la carpeta de correo específica
-            Folder[] folders = store.getDefaultFolder().list("*");
-            for (Folder folder : folders) {
-                System.out.println(folder.getName());
-            }
-            emailFolder = getfolder(folderName);
-            emailFolder.open(Folder.READ_ONLY);
-        }
-
-        // Obtener los mensajes de la carpeta
-        Message[] messages = emailFolder.getMessages();
-        for (Message message : messages) {
-            // Obtener información del mensaje
-            String from = InternetAddress.toString(message.getFrom());
-            String to = InternetAddress.toString(message.getRecipients(Message.RecipientType.TO));
-            String cc = InternetAddress.toString(message.getRecipients(Message.RecipientType.CC));
-            String subject = message.getSubject();
-            String sentDate = message.getSentDate().toString();
-            String content = message.getContent().toString().toString();
-
-            // Agregar los datos al modelo de la tabla
-            Object[] rowData = {from, to, cc, subject, sentDate, content};
-            tableModel.addRow(rowData);
-            tableModel.fireTableDataChanged();
-        }
-        emailFolder.close();
-    }
+   
 
     // Método para obtener una carpeta específica
     public Folder getfolder(String folderName) throws MessagingException {
@@ -116,7 +87,6 @@ public class EmailSessionManager {
     // Método para recibir correos electrónicos hasta el n-ésimo correo de una carpeta específica
     public void receiveEmail(DefaultTableModel tableModel, String folderName, int n) throws MessagingException, IOException {
         if (emailFolder == null || !emailFolder.isOpen()) {
-            // Abre la carpeta de correo específica
             emailFolder = store.getFolder("INBOX"); // Cambia "INBOX" al directorio específico que desees
             emailFolder.open(Folder.READ_ONLY);
         }
@@ -125,9 +95,9 @@ public class EmailSessionManager {
         Message[] messages = emailFolder.getMessages();
 
         // Iterar hasta el correo número n-10
-        int startIndex = 0;
-        int endIndex = Math.max(0, messages.length - 10);
-        for (int i = startIndex; i < Math.min(n, endIndex); i++) {
+        
+      
+        for (int i = 0; i < ((n == -1) ? messages.length - 1 : n) ; i++) {
             // Obtener el encabezado del mensaje y mostrarlo o procesarlo según sea necesario
             Message message = messages[i];
             String from = InternetAddress.toString(message.getFrom());
@@ -135,15 +105,26 @@ public class EmailSessionManager {
             String cc = InternetAddress.toString(message.getRecipients(Message.RecipientType.CC));
             String subject = message.getSubject();
             String sentDate = message.getSentDate().toString();
-            String content = message.getContent().toString();
+            String content = "";
+            
+            Object contents = message.getContent();
+           
+            if (contents instanceof Multipart) {
+                Multipart multipart = (Multipart) contents;
+                for (int z = 0; z < multipart.getCount(); z++) {
+                    BodyPart bodyPart = multipart.getBodyPart(z);
+                    content += bodyPart.getContent();
+                    
+                }
+            } else {
+                
+            }
 
             // Agregar los datos al modelo de la tabla
             Object[] rowData = {from, to, cc, subject, sentDate, content};
             tableModel.addRow(rowData);
             tableModel.fireTableDataChanged();
-            
         }
-        emailFolder.close();
     }
 
     // Método para cerrar la sesión de correo
