@@ -49,7 +49,8 @@ public class EmailSessionManager {
     }
 
     // Método para eliminar un correo electrónico
-    public void deleteEmail(Message message) throws MessagingException {
+    public void deleteEmail(Message message) throws MessagingException, IOException {
+        System.out.println(message.getSubject());   
         // Marcar el mensaje como eliminado
         message.setFlag(Flags.Flag.DELETED, true);
     }
@@ -75,19 +76,39 @@ public class EmailSessionManager {
             String cc = InternetAddress.toString(message.getRecipients(Message.RecipientType.CC));
             String subject = message.getSubject();
             String sentDate = message.getSentDate().toString();
-            String content = message.getContent().toString();
+            String content = message.getContent().toString().toString();
 
             // Agregar los datos al modelo de la tabla
             Object[] rowData = {from, to, cc, subject, sentDate, content};
             tableModel.addRow(rowData);
             tableModel.fireTableDataChanged();
         }
+        emailFolder.close();
     }
 
     // Método para obtener una carpeta específica
-    public Folder getfolder(String folderName) throws MessagingException{
+    public Folder getfolder(String folderName) throws MessagingException {
         Folder e = store.getFolder(folderName);
         return e;
+    }
+
+    public Message getEmailFromRow(int selectedRow) throws MessagingException {
+        // Suponiendo que la columna 0 de la tabla contiene el objeto Message asociado a cada fila
+        if (emailFolder != null || !emailFolder.isOpen()) {
+            emailFolder.open(Folder.READ_WRITE);
+            Object messageObject = emailFolder.getMessage(selectedRow);
+            //f.close(true);
+            if (messageObject instanceof Message) {
+
+                return (Message) messageObject;
+
+            } else {
+                throw new MessagingException("No se pudo obtener el mensaje seleccionado");
+            }
+        }else{
+             throw new MessagingException("No se pudo obtener la carpeta esta vacia o cerrada");
+        }
+
     }
 
     // Método para recibir correos electrónicos hasta el n-ésimo correo de una carpeta específica
@@ -118,7 +139,9 @@ public class EmailSessionManager {
             Object[] rowData = {from, to, cc, subject, sentDate, content};
             tableModel.addRow(rowData);
             tableModel.fireTableDataChanged();
+            
         }
+        emailFolder.close();
     }
 
     // Método para cerrar la sesión de correo

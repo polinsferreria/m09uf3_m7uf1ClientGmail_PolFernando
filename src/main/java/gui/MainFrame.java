@@ -59,10 +59,11 @@ public class MainFrame extends JFrame {
                     try {
                         Folder f = emailSessionManager.getfolder("INBOX");
                         // Obtener el mensaje seleccionado
-                        Message selectedMessage = getEmailFromRow(selectedRow,f); // Debes implementar este método para obtener el mensaje desde la fila seleccionada en la tabla
+                        //Message selectedMessage = getEmailFromRow(selectedRow,f); // Debes implementar este método para obtener el mensaje desde la fila seleccionada en la tabla
+                        Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow);
                         // Eliminar el mensaje
                         emailSessionManager.deleteEmail(selectedMessage);
-                        f.close(true);
+                        //f.close(true);
                         // Actualizar la tabla
                         refreshFolder(inboxTableModel, "INBOX"); // Debes tener un método refreshFolder que actualice la tabla
                     } catch (MessagingException ex) {
@@ -188,21 +189,7 @@ public class MainFrame extends JFrame {
         receiverThread.start(); // ¡No olvides iniciar el hilo!
     }
 
-    private Message getEmailFromRow(int selectedRow, Folder f) throws MessagingException {
-        // Suponiendo que la columna 0 de la tabla contiene el objeto Message asociado a cada fila
-        
-        f.open(Folder.READ_WRITE);
-        Object messageObject = f.getMessage(1);
-        //f.close(true);
-        if (messageObject instanceof Message) {
-            
-            return (Message) messageObject;
-            
-        } else {
-            throw new MessagingException("No se pudo obtener el mensaje seleccionado");
-        }
-        
-    }
+    
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
