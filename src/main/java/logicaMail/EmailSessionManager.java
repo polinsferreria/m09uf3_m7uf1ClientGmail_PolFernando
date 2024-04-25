@@ -96,7 +96,7 @@ public class EmailSessionManager {
         // Suponiendo que la columna 0 de la tabla contiene el objeto Message asociado a cada fila
         if (emailFolder != null || !emailFolder.isOpen()) {
             emailFolder.open(Folder.READ_WRITE);
-            Object messageObject = emailFolder.getMessage(selectedRow);
+            Object messageObject = emailFolder.getMessage(selectedRow-1);
             //f.close(true);
             if (messageObject instanceof Message) {
 
