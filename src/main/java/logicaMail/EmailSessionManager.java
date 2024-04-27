@@ -15,7 +15,8 @@ public class EmailSessionManager {
     private Session emailSession;
     private Store store;
     private Folder emailFolder;
-
+    private Boolean mainThreadDead = false;
+    
     // Constructor privado para asegurar la instancia única
     private EmailSessionManager(String username, String password) throws MessagingException {
         this.username = username;
@@ -99,7 +100,14 @@ public class EmailSessionManager {
       
         for (int i = 0; i < ((n == -1) ? messages.length - 1 : n) ; i++) {
             // Obtener el encabezado del mensaje y mostrarlo o procesarlo según sea necesario
-            Message message = messages[i];
+           
+        	System.out.println(mainThreadDead);
+        	if (mainThreadDead) {
+                // Si ha terminado, sal del bucle
+                return;
+            }
+        	
+        	Message message = messages[i];
             String from = InternetAddress.toString(message.getFrom());
             String to = InternetAddress.toString(message.getRecipients(Message.RecipientType.TO));
             String cc = InternetAddress.toString(message.getRecipients(Message.RecipientType.CC));
@@ -161,4 +169,13 @@ public class EmailSessionManager {
     public void setStore(Store store) {
         this.store = store;
     }
+
+    public synchronized boolean getMainThreadDead() {
+        return mainThreadDead;
+    }
+
+    public synchronized void setMainThreadDead(boolean mainThreadDead) {
+        this.mainThreadDead = mainThreadDead;
+    }
+    
 }

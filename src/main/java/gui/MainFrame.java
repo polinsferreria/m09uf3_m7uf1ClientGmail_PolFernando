@@ -18,6 +18,7 @@ import logicaMail.EmailSessionManager;
 public class MainFrame extends JFrame {
 
     private final EmailSessionManager emailSessionManager;
+    private EmailReceiverThread emailR;
     private JTable inboxTable;
 
     public MainFrame(String username, String password) throws MessagingException {
@@ -27,6 +28,7 @@ public class MainFrame extends JFrame {
         setLocationRelativeTo(null);
 
         emailSessionManager = EmailSessionManager.getInstance(username, password);
+       // emailR = new EmailReceiverThread(emailSessionManager, null, username, DISPOSE_ON_CLOSE);
 
         JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -121,7 +123,10 @@ public class MainFrame extends JFrame {
                     }
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(MainFrame.this, "Por favor ingrese un número válido del 0 al 10", "Error", JOptionPane.ERROR_MESSAGE);
-                }
+                } catch (MessagingException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
             }
         });
         add(getHeadersButton, BorderLayout.NORTH); // Agregar el botón en la parte superior de la ventana
@@ -175,17 +180,32 @@ public class MainFrame extends JFrame {
     }
 
     private void refreshFolder(DefaultTableModel tableModel, String folderName) throws MessagingException, IOException {
-        tableModel.setRowCount(0); // Limpiar la tabla antes de actualizarla
-        EmailReceiverThread receiverThread = new EmailReceiverThread(emailSessionManager, tableModel, folderName);
-        receiverThread.start();
+        try {
+            tableModel.setRowCount(0); // Limpiar la tabla antes de actualizarla
+            if (emailR == null || !emailR.isAlive()) { // Si no hay ningún hilo en ejecución, o el hilo existente ha terminado
+                emailR = EmailReceiverThread.getInstance(emailSessionManager, tableModel, folderName, -1);
+                emailR.start(); // Iniciar el hilo
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
-    private void refreshFolderLimit(DefaultTableModel tableModel, String folderName, int n) {
-
-        tableModel.setRowCount(0); // Limpiar la tabla antes de actualizarla
-        EmailReceiverThread receiverThread = new EmailReceiverThread(emailSessionManager, tableModel, folderName, n);
-        receiverThread.start(); // ¡No olvides iniciar el hilo!
+    private void refreshFolderLimit(DefaultTableModel tableModel, String folderName, int n) throws MessagingException {
+        try {
+            tableModel.setRowCount(0); // Limpiar la tabla antes de actualizarla
+            if (emailR == null || !emailR.isAlive()) { // Si no hay ningún hilo en ejecución, o el hilo existente ha terminado
+                emailR = EmailReceiverThread.getInstance(emailSessionManager, tableModel, folderName, n);
+                
+                emailR.start(); // Iniciar el hilo
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
