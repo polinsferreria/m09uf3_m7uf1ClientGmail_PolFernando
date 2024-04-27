@@ -45,6 +45,8 @@ public class MainFrame extends JFrame {
         JButton refreshButton = new JButton("Refresh");
         JButton descargarArchivo = new JButton("Descargar Archivo");
         JButton deleteButton = new JButton("DELETE");
+        
+        
 
         refreshButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -69,7 +71,7 @@ public class MainFrame extends JFrame {
                         //Folder f = emailSessionManager.getfolder("INBOX");
                         // Obtener el mensaje seleccionado
                         //Message selectedMessage = getEmailFromRow(selectedRow,f); // Debes implementar este método para obtener el mensaje desde la fila seleccionada en la tabla
-                        Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow + 1);
+                        Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow + 1, "INBOX");
                         // Eliminar el mensaje
                         emailSessionManager.deleteEmail(selectedMessage);
                         //f.close(true);
@@ -219,7 +221,16 @@ public class MainFrame extends JFrame {
                 }
             }
         });
-        // Otro código aquí...
+        
+        try {
+			refreshAllFolder(inboxTableModel, "INBOX");
+		} catch (MessagingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
     
     }
 
@@ -233,7 +244,7 @@ public class MainFrame extends JFrame {
     private void refreshFolderLimit(DefaultTableModel tableModel, String folderName, int n) throws MessagingException {
         
     	tableModel.setRowCount(0);
-    	emailSessionManager.startEmailReceiverThread(tableModel, folderName, n);
+    	emailSessionManager.startEmailReceiverThread(tableModel, folderName, n,this);
     	
     }
     
@@ -243,7 +254,7 @@ public class MainFrame extends JFrame {
             //Folder f = emailSessionManager.getfolder("INBOX");
             // Obtener el mensaje seleccionado
             //Message selectedMessage = getEmailFromRow(selectedRow,f); // Debes implementar este método para obtener el mensaje desde la fila seleccionada en la tabla
-            Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow);
+            Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow,"INBOX");
             // Eliminar el mensaje
             emailSessionManager.openOrDownloadAttachment(selectedMessage);// descargar el archivo adjunto 
             

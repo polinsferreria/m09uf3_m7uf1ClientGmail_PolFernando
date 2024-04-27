@@ -13,11 +13,16 @@ import javax.mail.internet.*;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
+
+import gui.MainFrame;
 
 public class EmailSessionManager {
 
@@ -29,7 +34,19 @@ public class EmailSessionManager {
     private Store store;
     private Folder emailFolder;
     private Boolean mainThreadDead = false;
-    private EmailReceiverThread emailReceiverThread;
+  
+    private EmailReceiverThread emailReceiverThreadMain;
+    private EmailReceiverThread emailReceiverThreadAct;
+    
+    private DefaultTableModel tmpTodo;
+    private DefaultTableModel actualizar;
+    
+    private Message[] messages;
+
+	public char[] messageNumber;
+
+	public Map<Integer,Message> emailAttachmentMap;
+  
     
     // Constructor privado para asegurar la instancia única
     private EmailSessionManager(String username, String password) throws MessagingException {
@@ -45,6 +62,8 @@ public class EmailSessionManager {
         this.emailSession = Session.getInstance(properties, null);
         this.store = emailSession.getStore("imaps");
         this.store.connect(username, password);
+        
+        emailAttachmentMap = new HashMap<Integer, Message>();
     }
 
     // Obtener una instancia única de EmailSessionManager
@@ -113,12 +132,17 @@ public class EmailSessionManager {
         return e;
     }
 
-    public Message getEmailFromRow(int selectedRow) throws MessagingException {
-        if (emailFolder == null || !emailFolder.isOpen()) {
-            throw new MessagingException("No se pudo abrir la carpeta de correo.");
-        }
+    public Message getEmailFromRow(int selectedRow, String name) throws MessagingException {
+        
+    	
+    	if (emailFolder == null || !emailFolder.isOpen()) {
+    		
+    		 emailFolder = store.getFolder(name);
+             emailFolder.open(Folder.READ_ONLY);
+    	
+    	} 
 
-        int folderRow = emailFolder.getMessageCount() - selectedRow - 1; // Ajustar el índice para obtener el mensaje correcto
+        int folderRow = messages.length - selectedRow - 1; // Ajustar el índice para obtener el mensaje correcto
         Object messageObject = emailFolder.getMessage(folderRow);
 
         if (messageObject instanceof Message) {
@@ -176,107 +200,194 @@ public class EmailSessionManager {
     
 
     // Método para crear y ejecutar el hilo de recepción de correo
-    public synchronized void startEmailReceiverThread(DefaultTableModel tableModel, String folderName, int n) {
-        // Verificar si ya hay un hilo en ejecución y detenerlo si es necesario
-        if (emailReceiverThread != null && emailReceiverThread.isAlive()) {
-            emailReceiverThread.interrupt();
-            mainThreadDead = true;
-        }
-
-        // Crear un nuevo hilo y comenzar su ejecución
-        emailReceiverThread = new EmailReceiverThread(tableModel, folderName, n);
-        emailReceiverThread.start();
+    public synchronized void startEmailReceiverThread(DefaultTableModel tableModel, String folderName, int n,MainFrame mf) {
+        // Verificar si ya hay un hilo en ejecución y detenerlo si es necesario     
+    	if (emailReceiverThreadMain == null) {	
+    		emailReceiverThreadMain = new EmailReceiverThread(tableModel, folderName, n,false);
+    		emailReceiverThreadMain.start();
+    		return;
+		}	  	
+    	if (emailReceiverThreadAct == null ) {
+          //  emailReceiverThreadMain.interrupt();
+         //   mainThreadDead = true;        	 
+        	actualizar(tableModel,folderName,n,mf);
+        }       
     }
+    
+    public void actualizar(DefaultTableModel tableModel, String folderName, int n, MainFrame mf) {
+    	
+    	
+    	 try {
+			
+    		emailFolder = store.getFolder(folderName);
+			emailFolder.open(Folder.READ_ONLY);
+			
+			if (messages.length < emailFolder.getMessageCount()) {
+				
+		       	 messages = emailFolder.getMessages();
+				 JOptionPane.showMessageDialog(mf, "Hay " + (-messages.length + emailFolder.getMessageCount() ) + " Mensajes nuevos!");	               
+				 emailReceiverThreadAct = new EmailReceiverThread(tableModel, folderName, n,true);
+				 emailReceiverThreadAct.start();
+			} else {
+				JOptionPane.showMessageDialog(mf, "No Hay Mensajes nuevos!");	               
+				
+			}
+			
+			
+			 
+		} catch (MessagingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+         
+        
+    	
+    }
+    
+    public void agregarFilasAlPrincipio(DefaultTableModel origen, DefaultTableModel destino) {
+        int rowCount = origen.getRowCount();
+        for (int i = rowCount - 1; i >= 0; i--) {
+            Object[] rowData = new Object[origen.getColumnCount()];
+            for (int j = 0; j < origen.getColumnCount(); j++) {
+                rowData[j] = origen.getValueAt(i, j);
+            }
+            destino.insertRow(0, rowData);
+        }
+    }
+
 
     
     private class EmailReceiverThread extends Thread {
         private DefaultTableModel tableModel;
         private String folderName;
         private int n;
+        boolean actualizar;
 
-        public EmailReceiverThread(DefaultTableModel tableModel, String folderName, int n) {
+        public EmailReceiverThread(DefaultTableModel tableModel, String folderName, int n, boolean actualizar) {
             this.tableModel = tableModel;
             this.folderName = folderName;
             this.n = n;
             mainThreadDead = false;
-           
+            this.actualizar = actualizar;
         }
 
         @Override
         public void run() {
-            try {               
+            Folder emailFolder = null;
+            try {
                 // Abrir la carpeta de correo
             	
+                System.out.println("Abriendo la carpeta de correo...");
                 emailFolder = store.getFolder(folderName);
                 emailFolder.open(Folder.READ_ONLY);
+                System.out.println("Carpeta de correo abierta correctamente.");
 
                 // Obtener los mensajes
-                Message[] messages = emailFolder.getMessages();
+                System.out.println("Obteniendo mensajes...");
+                messages = emailFolder.getMessages();
+                System.out.println("Mensajes obtenidos: " + messages.length);
+                
+                if (tmpTodo == null && n == -1) {
+					
+                	tmpTodo = tableModel;
+				}
+				
+					
+				
 
                 for (int i = messages.length - 1; i >= ((n == -1) ? 0 : messages.length - n); i--) {
- 
                     if (mainThreadDead) {
                         mainThreadDead = false;
                         tableModel.setRowCount(0);
+                        System.out.println("Hilo principal muerto. Limpieza y salida.");
                         return;
                     }
 
-                    // Obtener el encabezado del mensaje y mostrarlo o procesarlo según sea necesario
-                    Message message = messages[i];
-                    String from = InternetAddress.toString(message.getFrom());
-                    String to = InternetAddress.toString(message.getRecipients(Message.RecipientType.TO));
-                    String cc = InternetAddress.toString(message.getRecipients(Message.RecipientType.CC));
-                    String subject = message.getSubject();
-                    Date sentDate = message.getSentDate();
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy hh:mm");
-                    String formattedSentDate = dateFormat.format(sentDate);
+                    // Procesar el mensaje actual
+                    System.out.println("Procesando mensaje " + i + "...");
+                    processMessage(messages[i],i);
+                    System.out.println("Mensaje " + i + " procesado.");
+                }
+            } catch (MessagingException e) {
+                e.printStackTrace();
+                // Manejar la excepción de acuerdo a los requerimientos de tu aplicación
+            } finally {
+                // Cerrar la carpeta de correo al finalizar
+                if (emailFolder != null && emailFolder.isOpen()) {
+                	
+                	if (actualizar) {
+                		agregarFilasAlPrincipio(EmailSessionManager.this.actualizar, tableModel);           		
+					}
+                    try {
+                        System.out.println("Cerrando la carpeta de correo...");
+                        emailFolder.close(false);
+                        System.out.println("Carpeta de correo cerrada correctamente.");
+                    } catch (MessagingException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
 
-                    // Obtener el contenido del mensaje
-                    Object content = message.getContent();
-                    String textContent = "";
+        // Método para procesar un mensaje de correo electrónico
+        private void processMessage(Message message, int number) {
+            try {
+                // Obtener el encabezado del mensaje y mostrarlo o procesarlo según sea necesario
+                String from = InternetAddress.toString(message.getFrom());
+                String to = InternetAddress.toString(message.getRecipients(Message.RecipientType.TO));
+                String cc = InternetAddress.toString(message.getRecipients(Message.RecipientType.CC));
+                String subject = message.getSubject();
+                Date sentDate = message.getSentDate();
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy hh:mm");
+                String formattedSentDate = dateFormat.format(sentDate);
 
-                    // Lista para almacenar nombres de archivos adjuntos
-                    List<String> attachments = new ArrayList<>();
+                // Obtener el contenido del mensaje
+                Object content = message.getContent();
+                String textContent = "";
 
-                    // Verificar si el contenido es multipart
-                    if (content instanceof Multipart) {
-                        Multipart multipart = (Multipart) content;
-                        for (int z = 0; z < multipart.getCount(); z++) {
-                            BodyPart bodyPart = multipart.getBodyPart(z);
-                            if (bodyPart.isMimeType("text/plain")) {
-                                
-                            	textContent = (String) bodyPart.getContent();
-                               
-                            } else if (bodyPart.getDisposition() != null && bodyPart.getDisposition().equalsIgnoreCase(Part.ATTACHMENT)) {
-                                // Si hay archivos adjuntos, obtener el nombre del archivo y agregarlo a la lista
-                                String fileName = bodyPart.getFileName();
-                                if (fileName != null && !fileName.isEmpty()) {
-                                    attachments.add(fileName);
-                                }
+                // Lista para almacenar nombres de archivos adjuntos
+                List<String> attachments = new ArrayList<>();
+
+                // Verificar si el contenido es multipart
+                if (content instanceof Multipart) {
+                    Multipart multipart = (Multipart) content;
+                    for (int z = 0; z < multipart.getCount(); z++) {
+                        BodyPart bodyPart = multipart.getBodyPart(z);
+                        if (bodyPart.isMimeType("text/plain")) {
+                            textContent = (String) bodyPart.getContent();
+                        } else if (bodyPart.getDisposition() != null && bodyPart.getDisposition().equalsIgnoreCase(Part.ATTACHMENT)) {
+                            // Si hay archivos adjuntos, obtener el nombre del archivo y agregarlo a la lista
+                            String fileName = bodyPart.getFileName();
+                            if (fileName != null && !fileName.isEmpty()) {
+                                attachments.add(fileName);
                             }
                         }
-                    } else {
-                        // Si no es un contenido múltiple, asumir que es texto plano
-                        textContent = (String) content;
                     }
-
-                    // Crear un String con los nombres de los archivos adjuntos
-                    String attachmentNames = String.join(", ", attachments);
-
-                    // Crear un arreglo de objetos con los datos del mensaje
-                    Object[] rowData = {from, to, cc, subject, formattedSentDate, textContent, attachmentNames};
-
-                    // Agregar los datos del mensaje al modelo de la tabla
-                    SwingUtilities.invokeLater(() -> {
-                        tableModel.addRow(rowData);
-                        tableModel.fireTableDataChanged();
-                    });
+                } else {
+                    // Si no es un contenido múltiple, asumir que es texto plano
+                    textContent = (String) content;
                 }
+
+                // Crear un String con los nombres de los archivos adjuntos
+                String attachmentNames = String.join(", ", attachments);
+
+                // Crear un arreglo de objetos con los datos del mensaje
+                Object[] rowData = {from, to, cc, subject, formattedSentDate, textContent, attachmentNames};
+
+                if (attachmentNames != null) {
+                	emailAttachmentMap.put((Integer) number, message);
+                }
+                
+                // Agregar los datos del mensaje al modelo de la tabla
+                SwingUtilities.invokeLater(() -> {
+                    tableModel.addRow(rowData);
+                    tableModel.fireTableDataChanged();
+                });
             } catch (MessagingException | IOException e) {
                 e.printStackTrace();
                 // Manejar la excepción de acuerdo a los requerimientos de tu aplicación
             }
         }
     }
-    
 }
