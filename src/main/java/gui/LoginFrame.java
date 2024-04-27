@@ -99,7 +99,8 @@ public class LoginFrame extends JFrame {
                         JOptionPane.showMessageDialog(LoginFrame.this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
                     } catch (MessagingException ex) {
-                        Logger.getLogger(LoginFrame.class.getName()).log(Level.SEVERE, null, ex);
+                        JOptionPane.showMessageDialog(LoginFrame.this, "Login ERROR", "Error", JOptionPane.ERROR_MESSAGE);
+                        //Logger.getLogger(LoginFrame.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     //System.out.println(mail + " // " + new String(password));
 

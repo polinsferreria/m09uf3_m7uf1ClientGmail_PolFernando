@@ -9,7 +9,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <exec.mainClass>gui.LoginFrame</exec.mainClass>
+        <exec.mainClass>src.main.java.gui.LoginFrame</exec.mainClass>
     </properties>
     
     <dependencies>
@@ -31,5 +31,10 @@
 			<version>1.6.2</version>
 		 <type>jar</type>
 		</dependency>
-	</dependencies>
+		<dependency>
+			<groupId>com.rauxasoft</groupId>
+			<artifactId>gestionproductos</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+    </dependencies>
 </project>

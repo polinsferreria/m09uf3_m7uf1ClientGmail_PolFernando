@@ -1,9 +1,18 @@
 package logicaMail;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+
 import javax.mail.*;
 import javax.mail.internet.*;
+
+import java.util.Date;
 import java.util.Properties;
+
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 public class EmailSessionManager {
@@ -58,6 +67,34 @@ public class EmailSessionManager {
         emailFolder.close();
     }
 
+    
+    public void DowloadAdjuntoMessage(Message message) throws MessagingException, IOException {
+        if (emailFolder == null || !emailFolder.isOpen()) {
+            emailFolder = store.getFolder("INBOX"); // Cambia "INBOX" al directorio específico que desees
+            emailFolder.open(Folder.READ_ONLY);
+        }
+        
+        Object content = message.getContent();
+        if (content instanceof Multipart) {
+            Multipart multipart = (Multipart) content;
+            for (int i = 0; i < multipart.getCount(); i++) {
+                BodyPart bodyPart = multipart.getBodyPart(i);
+                if (Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition()) && bodyPart.getFileName() != null) {
+                    String fileName = bodyPart.getFileName();
+                    try (InputStream inputStream = bodyPart.getInputStream();
+                         OutputStream outputStream = new FileOutputStream("C\\\\:" + fileName)) {
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = inputStream.read(buffer)) != -1) {
+                            outputStream.write(buffer, 0, bytesRead);
+                        }
+                    }
+                    System.out.println("Archivo adjunto descargado: " + fileName);
+                }
+            }
+        }
+        
+    }
    
 
     // Método para obtener una carpeta específica
@@ -87,10 +124,15 @@ public class EmailSessionManager {
 
     // Método para recibir correos electrónicos hasta el n-ésimo correo de una carpeta específica
     public void receiveEmail(DefaultTableModel tableModel, String folderName, int n) throws MessagingException, IOException {
-        if (emailFolder == null || !emailFolder.isOpen()) {
-            emailFolder = store.getFolder("INBOX"); // Cambia "INBOX" al directorio específico que desees
-            emailFolder.open(Folder.READ_ONLY);
+       
+    	// Cerrar la carpeta actual si ya está abierta
+        if (emailFolder != null && emailFolder.isOpen()) {
+            emailFolder.close(false);
         }
+
+        // Abrir la carpeta de correo
+        emailFolder = store.getFolder("INBOX"); // Cambia "INBOX" al directorio específico que desees
+        emailFolder.open(Folder.READ_ONLY);
 
         // Obtener los mensajes
         Message[] messages = emailFolder.getMessages();
@@ -101,7 +143,7 @@ public class EmailSessionManager {
         for (int i = 0; i < ((n == -1) ? messages.length - 1 : n) ; i++) {
             // Obtener el encabezado del mensaje y mostrarlo o procesarlo según sea necesario
            
-        	System.out.println(mainThreadDead);
+        	// System.out.println(mainThreadDead);
         	if (mainThreadDead) {
                 // Si ha terminado, sal del bucle
                 return;
@@ -112,7 +154,9 @@ public class EmailSessionManager {
             String to = InternetAddress.toString(message.getRecipients(Message.RecipientType.TO));
             String cc = InternetAddress.toString(message.getRecipients(Message.RecipientType.CC));
             String subject = message.getSubject();
-            String sentDate = message.getSentDate().toString();
+            Date sentDate = message.getSentDate();       
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy hh:mm");
+            String formattedSentDate = dateFormat.format(sentDate);           
             String content = "";
             
             Object contents = message.getContent();
@@ -121,17 +165,26 @@ public class EmailSessionManager {
                 Multipart multipart = (Multipart) contents;
                 for (int z = 0; z < multipart.getCount(); z++) {
                     BodyPart bodyPart = multipart.getBodyPart(z);
-                    content += bodyPart.getContent();
-                    
+                    if (bodyPart.isMimeType("text/plain")) {
+                        // Si el cuerpo del mensaje es texto plano, añadirlo al contenido
+                        content += bodyPart.getContent();
+                    }
                 }
             } else {
-                
+                // Si no es un contenido múltiple, asumir que es texto plano
+                content = (String) contents;
             }
 
-            // Agregar los datos al modelo de la tabla
-            Object[] rowData = {from, to, cc, subject, sentDate, content};
-            tableModel.addRow(rowData);
-            tableModel.fireTableDataChanged();
+            
+            
+            Object[] rowData = {from, to, cc, subject, formattedSentDate, content};
+            
+            SwingUtilities.invokeLater(() -> {                
+                tableModel.addRow(rowData);
+                tableModel.fireTableDataChanged();
+            });
+
+            
         }
     }
 

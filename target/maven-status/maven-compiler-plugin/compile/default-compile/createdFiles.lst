@@ -3,6 +3,7 @@ logicaMail\AttachmentChooser.class
 logicaMail\EmailSender.class
 gui\MainFrame$4.class
 logicaMail\EmailReceiverThread.class
+gui\MainFrame$7.class
 gui\MainFrame.class
 gui\LoginFrame.class
 gui\MainFrame$3.class
@@ -10,5 +11,6 @@ gui\MainFrame$2.class
 logicaMail\EmailSessionManager.class
 logicaMail\EmailSender$1.class
 gui\LoginFrame$2.class
+gui\MainFrame$6.class
 gui\LoginFrame$1.class
 gui\MainFrame$1.class

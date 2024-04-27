@@ -44,7 +44,9 @@ public class EmailSender {
             // Crear un mensaje MIME
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+            // Convertir el array de direcciones a una cadena separada por comas
+            String recipients = String.join(",", to);
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipients)); // Concatenar las direcciones separadas por comas
             message.setSubject(subject);
 
             // Crear una parte MIME multipart para el mensaje
@@ -82,5 +84,6 @@ public class EmailSender {
                 }
             }
         }
+
     }
 }

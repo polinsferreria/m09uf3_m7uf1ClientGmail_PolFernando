@@ -1,6 +1,8 @@
 package gui;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
@@ -39,6 +41,7 @@ public class MainFrame extends JFrame {
         inboxTable = new JTable(inboxTableModel);
         JScrollPane inboxScrollPane = new JScrollPane(inboxTable);
         JButton refreshButton = new JButton("Refresh");
+        JButton descargarArchivo = new JButton("Descargar Archivo");
         JButton deleteButton = new JButton("DELETE");
 
         refreshButton.addActionListener(new ActionListener() {
@@ -54,15 +57,39 @@ public class MainFrame extends JFrame {
             }
         });
 
+        descargarArchivo.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = inboxTable.getSelectedRow();
+                if (selectedRow != -1) {
+                    try {
+                        //Folder f = emailSessionManager.getfolder("INBOX");
+                        // Obtener el mensaje seleccionado
+                        //Message selectedMessage = getEmailFromRow(selectedRow,f); // Debes implementar este método para obtener el mensaje desde la fila seleccionada en la tabla
+                        Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow + 1);
+                        // Eliminar el mensaje
+                        emailSessionManager.DowloadAdjuntoMessage(selectedMessage);// descargar el archivo adjunto 
+                        
+                    } catch (MessagingException ex) {
+                        ex.printStackTrace();
+                        // Manejar la excepción según sea necesario
+                    } catch (IOException ex) {
+                        Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(MainFrame.this, "Por favor seleccione un correo electrónico para eliminar", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
         deleteButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = inboxTable.getSelectedRow();
                 if (selectedRow != -1) {
                     try {
-                        Folder f = emailSessionManager.getfolder("INBOX");
+                        //Folder f = emailSessionManager.getfolder("INBOX");
                         // Obtener el mensaje seleccionado
                         //Message selectedMessage = getEmailFromRow(selectedRow,f); // Debes implementar este método para obtener el mensaje desde la fila seleccionada en la tabla
-                        Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow+1);
+                        Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow + 1);
                         // Eliminar el mensaje
                         emailSessionManager.deleteEmail(selectedMessage);
                         //f.close(true);
@@ -105,6 +132,7 @@ public class MainFrame extends JFrame {
         });
         sentPanel.add(sentScrollPane, BorderLayout.CENTER);
         sentPanel.add(refreshSentButton, BorderLayout.SOUTH);
+        sentPanel.add(descargarArchivo, BorderLayout.SOUTH);
 
         // Agregar la pestaña de correos enviados al panel de pestañas
         //boton para configurar los correos que se quiere obtener:
@@ -174,9 +202,31 @@ public class MainFrame extends JFrame {
         tabbedPane.addTab("Inbox", inboxPanel);
         tabbedPane.addTab("Sent", sentPanel);
         tabbedPane.addTab("Compose", composePanel);
+        
 
         // Agregar el panel de pestañas al marco principal
         add(tabbedPane, BorderLayout.CENTER);
+        
+        inboxTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+                    int selectedRow = inboxTable.getSelectedRow();
+                    int selectedColumn = inboxTable.getSelectedColumn();
+                    if (selectedRow != -1 && selectedColumn != -1) {
+                        Object selectedValue = inboxTable.getValueAt(selectedRow, selectedColumn);
+                        if (selectedValue != null) {
+                            // Crear un cuadro de diálogo personalizado
+                            JTextArea textArea = new JTextArea(selectedValue.toString());
+                            JScrollPane scrollPane = new JScrollPane(textArea);
+                            scrollPane.setPreferredSize(new Dimension(400, 300)); // Establecer el tamaño deseado
+                            JOptionPane.showMessageDialog(MainFrame.this, scrollPane, "Contenido de la celda", JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
+                }
+            }
+        });
+        // Otro código aquí...
+    
     }
 
     private void refreshFolder(DefaultTableModel tableModel, String folderName) throws MessagingException, IOException {
@@ -192,6 +242,7 @@ public class MainFrame extends JFrame {
         }
     }
 
+
     private void refreshFolderLimit(DefaultTableModel tableModel, String folderName, int n) throws MessagingException {
         try {
             tableModel.setRowCount(0); // Limpiar la tabla antes de actualizarla
@@ -205,6 +256,7 @@ public class MainFrame extends JFrame {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
 
 
     public static void main(String[] args) {
