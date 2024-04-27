@@ -13,17 +13,19 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import logicaMail.AttachmentChooser;
-import logicaMail.EmailReceiverThread;
+
 import logicaMail.EmailSender;
 import logicaMail.EmailSessionManager;
 
 public class MainFrame extends JFrame {
 
-    private final EmailSessionManager emailSessionManager;
-    private EmailReceiverThread emailR;
-    private JTable inboxTable;
+	private final EmailSessionManager emailSessionManager;
 
-    public MainFrame(String username, String password) throws MessagingException {
+	private JTable inboxTable;
+
+	private int selectedRow;
+
+	public MainFrame(String username, String password) throws MessagingException {
 
         setTitle("Mail Application");
         setSize(800, 600);
@@ -36,7 +38,7 @@ public class MainFrame extends JFrame {
 
         // Panel de bandeja de entrada
         JPanel inboxPanel = new JPanel(new BorderLayout());
-        String[] columnNames = {"From", "To", "CC", "Subject", "Sent Date", "Message"};
+        String[] columnNames = {"De", "Para", "CC", "Asunto", "Fecha", "Contenido", "Adjuntos"};
         DefaultTableModel inboxTableModel = new DefaultTableModel(columnNames, 0);
         inboxTable = new JTable(inboxTableModel);
         JScrollPane inboxScrollPane = new JScrollPane(inboxTable);
@@ -47,7 +49,7 @@ public class MainFrame extends JFrame {
         refreshButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    refreshFolder(inboxTableModel, "INBOX");
+                    refreshAllFolder(inboxTableModel, "INBOX");
                 } catch (MessagingException ex) {
                     Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (IOException ex) {
@@ -57,29 +59,7 @@ public class MainFrame extends JFrame {
             }
         });
 
-        descargarArchivo.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int selectedRow = inboxTable.getSelectedRow();
-                if (selectedRow != -1) {
-                    try {
-                        //Folder f = emailSessionManager.getfolder("INBOX");
-                        // Obtener el mensaje seleccionado
-                        //Message selectedMessage = getEmailFromRow(selectedRow,f); // Debes implementar este método para obtener el mensaje desde la fila seleccionada en la tabla
-                        Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow + 1);
-                        // Eliminar el mensaje
-                        emailSessionManager.DowloadAdjuntoMessage(selectedMessage);// descargar el archivo adjunto 
-                        
-                    } catch (MessagingException ex) {
-                        ex.printStackTrace();
-                        // Manejar la excepción según sea necesario
-                    } catch (IOException ex) {
-                        Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(MainFrame.this, "Por favor seleccione un correo electrónico para eliminar", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        });
+       
 
         deleteButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -94,7 +74,7 @@ public class MainFrame extends JFrame {
                         emailSessionManager.deleteEmail(selectedMessage);
                         //f.close(true);
                         // Actualizar la tabla
-                        refreshFolder(inboxTableModel, "INBOX"); // Debes tener un método refreshFolder que actualice la tabla
+                        refreshAllFolder(inboxTableModel, "INBOX"); // Debes tener un método refreshFolder que actualice la tabla
                     } catch (MessagingException ex) {
                         ex.printStackTrace();
                         // Manejar la excepción según sea necesario
@@ -113,7 +93,7 @@ public class MainFrame extends JFrame {
 
         // Panel de correos enviados
         JPanel sentPanel = new JPanel(new BorderLayout());
-        String[] sentColumnNames = {"From", "To", "CC", "Subject", "Sent Date", "Message"};
+        String[] sentColumnNames = {"De", "Para", "CC", "Asunto", "Fecha", "Contenido", "Adjuntos"};
         DefaultTableModel sentTableModel = new DefaultTableModel(sentColumnNames, 0);
         JTable sentTable = new JTable(sentTableModel);
         JScrollPane sentScrollPane = new JScrollPane(sentTable);
@@ -122,7 +102,7 @@ public class MainFrame extends JFrame {
         refreshSentButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    refreshFolder(sentTableModel, "SEND");
+                    refreshAllFolder(sentTableModel, "SEND");
                 } catch (MessagingException ex) {
                     Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (IOException ex) {
@@ -130,9 +110,17 @@ public class MainFrame extends JFrame {
                 }
             }
         });
+        
+        descargarArchivo.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	
+            	descargarArchivo();
+                
+                
+        }});
         sentPanel.add(sentScrollPane, BorderLayout.CENTER);
         sentPanel.add(refreshSentButton, BorderLayout.SOUTH);
-        sentPanel.add(descargarArchivo, BorderLayout.SOUTH);
+        //sentPanel.add(descargarArchivo, BorderLayout.SOUTH);
 
         // Agregar la pestaña de correos enviados al panel de pestañas
         //boton para configurar los correos que se quiere obtener:
@@ -174,18 +162,13 @@ public class MainFrame extends JFrame {
                 String to = toField.getText();
                 String subject = subjectField.getText();
                 String body = bodyArea.getText();
-                try {
-                    // Llamar al método para enviar el correo electrónico usando la clase de logicaMail
-                    EmailSender.sendEmailWithAttachment(to, subject, body, AttachmentChooser.chooseAttachments());
-                    JOptionPane.showMessageDialog(MainFrame.this, "Email sent successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    // Limpiar los campos después de enviar el correo electrónico
-                    toField.setText("");
-                    subjectField.setText("");
-                    bodyArea.setText("");
-                } catch (MessagingException ex) {
-                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-                    JOptionPane.showMessageDialog(MainFrame.this, "Error sending email: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                }
+                // Llamar al método para enviar el correo electrónico usando la clase de logicaMail
+				EmailSender.sendEmailWithAttachment(to, subject, body, AttachmentChooser.chooseAttachments());
+				JOptionPane.showMessageDialog(MainFrame.this, "Email sent successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+				// Limpiar los campos después de enviar el correo electrónico
+				toField.setText("");
+				subjectField.setText("");
+				bodyArea.setText("");
             }
         });
         JPanel composeFieldsPanel = new JPanel(new GridLayout(3, 2));
@@ -210,7 +193,7 @@ public class MainFrame extends JFrame {
         inboxTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
-                    int selectedRow = inboxTable.getSelectedRow();
+                    selectedRow = inboxTable.getSelectedRow();
                     int selectedColumn = inboxTable.getSelectedColumn();
                     if (selectedRow != -1 && selectedColumn != -1) {
                         Object selectedValue = inboxTable.getValueAt(selectedRow, selectedColumn);
@@ -219,8 +202,19 @@ public class MainFrame extends JFrame {
                             JTextArea textArea = new JTextArea(selectedValue.toString());
                             JScrollPane scrollPane = new JScrollPane(textArea);
                             scrollPane.setPreferredSize(new Dimension(400, 300)); // Establecer el tamaño deseado
-                            JOptionPane.showMessageDialog(MainFrame.this, scrollPane, "Contenido de la celda", JOptionPane.INFORMATION_MESSAGE);
-                        }
+                            
+                            if (selectedColumn == inboxTable.getColumnCount() - 1) {
+                            	
+                            	 JOptionPane.showMessageDialog(MainFrame.this, descargarArchivo, "Contenido de la celda", JOptionPane.INFORMATION_MESSAGE);
+               	              
+								
+								
+							} else {
+
+	                            JOptionPane.showMessageDialog(MainFrame.this, scrollPane, "Contenido de la celda", JOptionPane.INFORMATION_MESSAGE);
+	                   
+							}
+                                 }
                     }
                 }
             }
@@ -229,36 +223,39 @@ public class MainFrame extends JFrame {
     
     }
 
-    private void refreshFolder(DefaultTableModel tableModel, String folderName) throws MessagingException, IOException {
-        try {
-            tableModel.setRowCount(0); // Limpiar la tabla antes de actualizarla
-            if (emailR == null || !emailR.isAlive()) { // Si no hay ningún hilo en ejecución, o el hilo existente ha terminado
-                emailR = EmailReceiverThread.getInstance(emailSessionManager, tableModel, folderName, -1);
-                emailR.start(); // Iniciar el hilo
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+    private void refreshAllFolder(DefaultTableModel tableModel, String folderName) throws MessagingException, IOException {
+    		
+    	refreshFolderLimit(tableModel, folderName, -1);
+            
     }
 
 
     private void refreshFolderLimit(DefaultTableModel tableModel, String folderName, int n) throws MessagingException {
-        try {
-            tableModel.setRowCount(0); // Limpiar la tabla antes de actualizarla
-            if (emailR == null || !emailR.isAlive()) { // Si no hay ningún hilo en ejecución, o el hilo existente ha terminado
-                emailR = EmailReceiverThread.getInstance(emailSessionManager, tableModel, folderName, n);
-                
-                emailR.start(); // Iniciar el hilo
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+        
+    	tableModel.setRowCount(0);
+    	emailSessionManager.startEmailReceiverThread(tableModel, folderName, n);
+    	
     }
-
-
-
+    
+    private void descargarArchivo() {
+    	
+    	try {
+            //Folder f = emailSessionManager.getfolder("INBOX");
+            // Obtener el mensaje seleccionado
+            //Message selectedMessage = getEmailFromRow(selectedRow,f); // Debes implementar este método para obtener el mensaje desde la fila seleccionada en la tabla
+            Message selectedMessage = emailSessionManager.getEmailFromRow(selectedRow);
+            // Eliminar el mensaje
+            emailSessionManager.openOrDownloadAttachment(selectedMessage);// descargar el archivo adjunto 
+            
+        } catch (MessagingException ex) {
+            ex.printStackTrace();
+            // Manejar la excepción según sea necesario
+        } catch (IOException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+  
+}
+    
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
